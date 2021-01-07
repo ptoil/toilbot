@@ -13,6 +13,8 @@ TOKEN = os.getenv("CORNBOT_TOKEN")
 
 botOwner = 205908835435544577;
 
+cornFreq = 200
+
 ########## END CONSTANTS
 
 
@@ -26,7 +28,7 @@ cornStorm = 0
 
 def cornRand (storm):
 	if storm == 0:
-		return random.randint(0, 100)
+		return random.randint(0, cornFreq)
 	elif storm == 1:
 		return random.randint(60, 70)
 	else:
@@ -67,7 +69,7 @@ async def on_message(message):
 	await bot.process_commands(message) #this fucking line is needed to stop the on_message function from preventing commands from being called
 
 
-@bot.command(brief="Increases chance for a CORN message", description="Increases the chance from 1/100 to 1/10\nDoesn't do anything if the cornado is active\n(the chances are actually 1/101 and 1/11 but idc dont tell anyone)")
+@bot.command(brief="Increases chance for a CORN message", description="Increases the chance from 1/200 to 1/10\nDoesn't do anything if the cornado is active\n(the chances are actually 1/201 and 1/11 but idc dont tell anyone)")
 async def cornado(ctx):
 	global cornStorm
 	cornStorm = 1
