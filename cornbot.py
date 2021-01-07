@@ -67,15 +67,6 @@ async def on_message(message):
 	await bot.process_commands(message) #this fucking line is needed to stop the on_message function from preventing commands from being called
 
 
-@bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
-async def shutdown(ctx, botName: str):
-	if ctx.author.id == botOwner:
-		if botName == "cornbot":
-			await ctx.send("Shutting down")
-			await bot.logout()
-	else:
-		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
-
 @bot.command(brief="Increases chance for a CORN message", description="Increases the chance from 1/100 to 1/10\nDoesn't do anything if the cornado is active\n(the chances are actually 1/101 and 1/11 but idc dont tell anyone)")
 async def cornado(ctx):
 	global cornStorm
@@ -101,5 +92,19 @@ async def say(ctx, botName: str, *strInput: str):
 			await ctx.send(" ".join(strInput))
 	else:
 		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
+
+@bot.command()
+async def dodrop(ctx):
+	await ctx.send(".drop")
+
+@bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
+async def shutdown(ctx, botName: str):
+	if ctx.author.id == botOwner:
+		if botName == "cornbot":
+			await ctx.send("Shutting down")
+			await bot.logout()
+	else:
+		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
+
 
 bot.run(TOKEN)

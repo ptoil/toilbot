@@ -319,6 +319,10 @@ async def say(ctx, botName: str, *strInput: str):
 		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
 
 @bot.command()
+async def dodrop(ctx):
+	await ctx.send(".drop")
+
+@bot.command()
 async def shutdown(ctx, botName: str):
 	if ctx.author.id == botOwner:
 		if botName == "toilbot":
