@@ -311,6 +311,14 @@ async def moon(ctx):
 			return;
 
 @bot.command()
+async def say(ctx, botName: str, *strInput: str):
+	if ctx.author.id == botOwner:
+		if (botName == "toilbot"):
+			await ctx.send(" ".join(strInput))
+	else:
+		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
+
+@bot.command()
 async def shutdown(ctx, botName: str):
 	if ctx.author.id == botOwner:
 		if botName == "toilbot":
