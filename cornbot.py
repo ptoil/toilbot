@@ -99,6 +99,10 @@ async def say(ctx, botName: str, *strInput: str):
 async def dodrop(ctx):
 	await ctx.send(".drop")
 
+@bot.command()
+async def goblin(ctx):
+	await ctx.send("https://cdn.discordapp.com/attachments/744327220977336455/796917340553871370/unknown.png")
+
 @bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
 async def shutdown(ctx, botName: str):
 	if ctx.author.id == botOwner:
