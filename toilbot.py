@@ -21,6 +21,7 @@ freqThreshold = 500
 emoji_first_place = "🥇"
 emoji_second_place = "🥈"
 emoji_third_place = "🥉"
+emoji_check_mark = "✅"
 
 ########## END CONSTANTS
 
@@ -55,6 +56,7 @@ async def longtea(ctx):
 #			await ctx.send(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
 
 		timeCounter = 0
+		roundOver = 0
 		async def background_counter():
 			await bot.wait_until_ready()
 			counterMessage = None
@@ -88,7 +90,7 @@ async def longtea(ctx):
 				nonlocal gameCounter
 				gameCounter = 6
 				return
-			if timeCounter == 9:
+			if timeCounter == 9 or roundOver == 1:
 				await bot.process_commands(message)
 				return
 
@@ -105,7 +107,8 @@ async def longtea(ctx):
 					await message.add_reaction(emoji_first_place)
 #					await message.channel.send(f"{message.content.lower()} posted by {longestUser} with {longestCharacters} characters")
 
-		await asyncio.sleep(9)
+		await asyncio.sleep(10)
+		roundOver = 1
 		if gameCounter == 6:
 			return
 		elif longestUser == None:
@@ -126,6 +129,7 @@ async def quicktea(ctx):
 	gameCounter = 0
 	while gameCounter < 5:
 		quickArr = []
+		usedWords = []
 		phrase = ""
 		
 		belowThreshold = 1
@@ -139,6 +143,7 @@ async def quicktea(ctx):
 #			await ctx.send(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
 
 		timeCounter = 0
+		roundOver = 0
 		async def background_counter():
 			await bot.wait_until_ready()
 			counterMessage = None
@@ -148,7 +153,7 @@ async def quicktea(ctx):
 				nonlocal timeCounter
 				if gameCounter == 6:
 					timeCounter = 9
-				if timeCounter == 9:
+				if timeCounter == 9 or roundOver == 1:
 					return
 				elif timeCounter == 0:
 						await ctx.send(f"Quickly type a word containing: **{phrase}**")
@@ -176,10 +181,11 @@ async def quicktea(ctx):
 				await bot.process_commands(message)
 				return
 
-			if phrase.lower() in message.content.lower() and message.author not in quickArr:
+			if phrase.lower() in message.content.lower() and message.author not in quickArr and message.content.lower() not in usedWords:
 				nonlocal wordsList
 				if message.content.upper() in wordsList:
 					quickArr.append(message.author)
+					usedWords.append(message.content.lower())
 					if len(quickArr) == 1:
 						await message.add_reaction(emoji_first_place)
 					elif len(quickArr) == 2:
@@ -187,7 +193,8 @@ async def quicktea(ctx):
 					else:
 						await message.add_reaction(emoji_third_place)
 
-		await asyncio.sleep(9)
+		await asyncio.sleep(10)
+		roundOver = 1
 		winOutput = ""
 		if gameCounter == 6:
 			return
@@ -197,11 +204,12 @@ async def quicktea(ctx):
 			i = 0
 			while i < len(quickArr):
 				if i == 0:
-					winOutput += ":emoji_first_place: " + quickArr[i].mention + " wins x points.\n"
+					winOutput += ":first_place: "
 				elif i == 1:
-					winOutput += ":emoji_second_place: " + quickArr[i].mention + " wins x points.\n"
+					winOutput += ":second_place: "
 				else:
-					winOutput += ":emoji_third_place: " + quickArr[i].mention + " wins x points.\n"
+					winOutput += ":third_place: "
+				winOutput += quickArr[i].mention + " wins x points.\n"
 				i += 1
 		await ctx.send(winOutput)
 		await asyncio.sleep(3)
@@ -216,9 +224,8 @@ async def manytea(ctx):
 
 	gameCounter = 0
 	while gameCounter < 5:
-		longestCharacters = 0
-		longestWord = ""
-		longestUser = None
+		scores = {}
+		usedWords = []
 		phrase = ""
 		
 		belowThreshold = 1
@@ -232,6 +239,7 @@ async def manytea(ctx):
 #			await ctx.send(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
 
 		timeCounter = 0
+		roundOver = 0
 		async def background_counter():
 			await bot.wait_until_ready()
 			counterMessage = None
@@ -244,7 +252,7 @@ async def manytea(ctx):
 				if timeCounter == 9:
 					return
 				elif timeCounter == 0:
-						await ctx.send(f"Type the longest word containing: **{phrase}**")
+						await ctx.send(f"Type as many words as possible containing: **{phrase}**")
 						counterMessage = await ctx.send(moons[timeCounter])
 				else:
 					await counterMessage.edit(content=moons[timeCounter])
@@ -265,31 +273,41 @@ async def manytea(ctx):
 				nonlocal gameCounter
 				gameCounter = 6
 				return
-			if timeCounter == 9:
+			if timeCounter == 9 or roundOver == 1:
 				await bot.process_commands(message)
 				return
 
-			nonlocal longestCharacters
-			nonlocal longestUser
-			nonlocal longestWord
-#			await ctx.send(f"longestCharacters: {longestCharacters}, longestUser: {longestUser}, phrase: {phrase}")
-			if phrase.lower() in message.content.lower() and len(message.content) > longestCharacters:
+			if phrase.lower() in message.content.lower() and message.content.lower() not in usedWords:
 				nonlocal wordsList
 				if message.content.upper() in wordsList:
-					longestCharacters = len(message.content)
-					longestWord = message.content.upper()
-					longestUser = message.author.mention
-					await message.add_reaction(emoji_first_place)
-#					await message.channel.send(f"{message.content.lower()} posted by {longestUser} with {longestCharacters} characters")
+					usedWords.append(message.content.lower())
+					await message.add_reaction(emoji_check_mark)
+					if message.author in scores:
+						scores[message.author] += 1
+					else:
+						scores[message.author] = 1
 
-		await asyncio.sleep(9)
+
+		await asyncio.sleep(10)
+		roundOver = 1
+		winOutput = ""
 		if gameCounter == 6:
 			return
-		elif longestUser == None:
-			await ctx.send(f"Nobody wins the round. A word that would've been accepted is **{randWord}**.")
+		elif len(scores) == 0:
+			winOutput = "Nobody wins the round. A word that would've been accepted is **" + randWord + "**."
 		else:
-			await ctx.send(f":medal: {longestUser} wins the round with the word: **{longestWord}**.")
-
+			sortedScores = sorted(scores.items(), key=lambda x: x[1])
+			i = 0
+			while i < len(sortedScores):
+				if i == 0:
+					winOutput += ":first_place: "
+				elif i == 1:
+					winOutput += ":second_place: "
+				else:
+					winOutput += ":third_place: "
+				winOutput += sortedScores[i][0].mention + " got " + str(sortedScores[i][1]) + " words and wins x points.\n"
+				i += 1
+		await ctx.send(winOutput)
 		await asyncio.sleep(3)
 		gameCounter += 1
 
