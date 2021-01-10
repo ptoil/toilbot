@@ -110,13 +110,14 @@ async def addgoblin(ctx, link: str):
 	goblinFile = open("goblins.txt", "a")
 	goblinFile.write("\n" + link)
 	goblinFile.close()
-	
+	await ctx.send("Image added")
 
 @bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
 async def shutdown(ctx, botName: str):
 	if ctx.author.id == botOwner:
 		if botName == "cornbot":
 			await ctx.send("Shutting down")
+			print("Bot was shutdown")
 			await bot.logout()
 	else:
 		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
