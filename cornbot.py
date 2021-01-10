@@ -101,11 +101,16 @@ async def dodrop(ctx):
 
 @bot.command()
 async def goblin(ctx):
-	goblins = [	"https://cdn.discordapp.com/attachments/744327220977336455/796917340553871370/unknown.png",
-				"https://cdn.discordapp.com/attachments/789548251010564127/797348205976092692/Screenshot_2021-01-08_at_1.32.10_PM.png",
-				"https://cdn.discordapp.com/attachments/789548251010564127/797348205775814670/Screenshot_2021-01-08_at_1.33.30_PM.png",
-				"https://cdn.discordapp.com/attachments/744327220977336455/796922763653939200/Screenshot_2021-01-07_at_10.20.37_AM.png"]
+	goblinFile = open("goblins.txt", "r")
+	goblins = goblinFile.read().split("\n")
 	await ctx.send(random.choice(goblins))
+
+@bot.command()
+async def addgoblin(ctx, link: str):
+	goblinFile = open("goblins.txt", "a")
+	goblinFile.write("\n" + link)
+	goblinFile.close()
+	
 
 @bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
 async def shutdown(ctx, botName: str):
