@@ -25,6 +25,7 @@ async def on_ready():
 	print(f'{bot.user} has connect to Discord!')
 
 cornStorm = 0
+reverseStorm = 0
 
 def cornRand (storm):
 	if storm == 0:
@@ -65,6 +66,10 @@ async def on_message(message):
 		await message.channel.send(cornText)
 	elif "rand" in message.content.lower():
 		await message.channel.send(rand100)
+
+	if reverseStorm == 1:
+		await message.channel.send(message.content[::-1])
+
 
 	await bot.process_commands(message) #this fucking line is needed to stop the on_message function from preventing commands from being called
 
@@ -111,6 +116,16 @@ async def addgoblin(ctx, link: str):
 	goblinFile.write("\n" + link)
 	goblinFile.close()
 	await ctx.send("Image added")
+
+@bot.command()
+async def reverse(ctx):
+	global reverseStorm
+	reverseStorm = 1
+
+@bot.command(parent="reverse")
+async def forward(ctx):
+	global reverseStorm
+	reverseStorm = 0
 
 @bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
 async def shutdown(ctx, botName: str):
