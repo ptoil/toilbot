@@ -115,14 +115,56 @@ async def addgoblin(ctx, link: str):
 	goblinFile = open("goblins.txt", "a")
 	goblinFile.write("\n" + link)
 	goblinFile.close()
-	await ctx.send("Image added")
+	await ctx.send("Goblin added")
+
+@bot.command()
+async def goblincount(ctx):
+	goblinFile = open("goblins.txt", "r")
+	goblins = goblinFile.read().split("\n")
+	await ctx.send(len(goblins))
+
+@bot.command()
+async def viewgoblin(ctx, num: int):
+	goblinFile = open("goblins.txt", "r")
+	goblins = goblinFile.read().split("\n")
+	if num < 1:
+		await ctx.send("AHHHHHHHH")
+	else:
+		try:
+			await ctx.send(goblins[num-1])
+		except IndexError:
+			await ctx.send("Goblin doesn't exist")
+
+@bot.command()
+async def deletegoblin(ctx, num: int):
+	goblinFile = open("goblins.txt", "r+")
+	goblins = goblinFile.read().split("\n")
+	goblinFile.seek(0)
+
+	if num < 1:
+		await ctx.send("AHHHHHHHH")
+	else:
+		try:
+			del goblins[num-1]
+			i = 0
+			for gob in goblins:
+				if (i ==0):
+					i += 1
+				else:
+					goblinFile.write("\n")
+				goblinFile.write(gob)
+			goblinFile.truncate()
+			goblinFile.close()
+			await ctx.send("Goblin deleted")
+		except IndexError:
+			await ctx.send("Goblin doesn't exist")
 
 @bot.command()
 async def reverse(ctx):
 	global reverseStorm
 	reverseStorm = 1
 
-@bot.command(parent="reverse")
+@bot.command()
 async def forward(ctx):
 	global reverseStorm
 	reverseStorm = 0
