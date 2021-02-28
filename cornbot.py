@@ -16,16 +16,20 @@ botOwner = 205908835435544577;
 cornFreq = 200
 
 ########## END CONSTANTS
+########## VARIABLES
 
+cornStorm = 0
+reverseStorm = 0
+
+goblinNum = -1
+
+########## END VARIABLES
 
 bot = commands.Bot(command_prefix='.')
 
 @bot.event
 async def on_ready():
 	print(f'{bot.user} has connect to Discord!')
-
-cornStorm = 0
-reverseStorm = 0
 
 def cornRand (storm):
 	if storm == 0:
@@ -108,7 +112,9 @@ async def dodrop(ctx):
 async def goblin(ctx):
 	goblinFile = open("goblins.txt", "r")
 	goblins = goblinFile.read().split("\n")
-	await ctx.send(random.choice(goblins))
+	global goblinNum
+	goblinNum = random.randint(0, len(goblins))
+	await ctx.send(goblins[goblinNum])
 
 @bot.command()
 async def addgoblin(ctx, link: str):
@@ -158,6 +164,14 @@ async def deletegoblin(ctx, num: int):
 			await ctx.send("Goblin deleted")
 		except IndexError:
 			await ctx.send("Goblin doesn't exist")
+
+@bot.command()
+async def goblinnumber(ctx):
+	global goblinNum
+	if goblinNum == -1:
+		await ctx.send("No goblins have been sent yet. lol you idiot")
+	else:
+		await ctx.send(goblinNum+1)
 
 @bot.command()
 async def reverse(ctx):
