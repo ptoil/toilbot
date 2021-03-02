@@ -1,10 +1,11 @@
 # cornbot.py
 import os
+from dotenv import load_dotenv
+
 import random
 
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 
 ########## CONSTANTS
 
@@ -108,7 +109,7 @@ async def say(ctx, botName: str, *strInput: str):
 async def dodrop(ctx):
 	await ctx.send(".drop")
 
-@bot.command()
+@bot.command(aliases=["g"])
 async def goblin(ctx):
 	goblinFile = open("goblins.txt", "r")
 	goblins = goblinFile.read().split("\n")
@@ -116,20 +117,20 @@ async def goblin(ctx):
 	goblinNum = random.randint(0, len(goblins))
 	await ctx.send(goblins[goblinNum])
 
-@bot.command()
+@bot.command(aliases=["addg", "ag"])
 async def addgoblin(ctx, link: str):
 	goblinFile = open("goblins.txt", "a")
 	goblinFile.write("\n" + link)
 	goblinFile.close()
 	await ctx.send("Goblin added")
 
-@bot.command()
+@bot.command(aliases=["gcount", "gc"])
 async def goblincount(ctx):
 	goblinFile = open("goblins.txt", "r")
 	goblins = goblinFile.read().split("\n")
 	await ctx.send(len(goblins))
 
-@bot.command()
+@bot.command(aliases=["viewg", "vg"])
 async def viewgoblin(ctx, num: int):
 	goblinFile = open("goblins.txt", "r")
 	goblins = goblinFile.read().split("\n")
@@ -141,7 +142,7 @@ async def viewgoblin(ctx, num: int):
 		except IndexError:
 			await ctx.send("Goblin doesn't exist")
 
-@bot.command()
+@bot.command(aliases=["deleteg", "delg", "dg"])
 async def deletegoblin(ctx, num: int):
 	goblinFile = open("goblins.txt", "r+")
 	goblins = goblinFile.read().split("\n")
@@ -165,7 +166,7 @@ async def deletegoblin(ctx, num: int):
 		except IndexError:
 			await ctx.send("Goblin doesn't exist")
 
-@bot.command()
+@bot.command(aliases=["gnumber", "gnum", "gn"])
 async def goblinnumber(ctx):
 	global goblinNum
 	if goblinNum == -1:
