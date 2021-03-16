@@ -2,7 +2,9 @@
 import os
 from dotenv import load_dotenv
 
+import math
 import random
+import re
 
 import discord
 from discord.ext import commands
@@ -44,20 +46,21 @@ def cornRand (storm):
 async def on_message(message):
 	if message.author == bot.user:
 		return
-	if message.channel.name == "bot-testing":
-		await bot.process_commands(message)
-		return
 
 	if message.content.lower() == "what does it stand for?":
 		await message.channel.send("jaiya sucks")
 
-	if "wendys" in message.content.lower() or "wendy's" in message.content.lower():
+	wendys = re.search("w+(e|.*)n+d+y*'*s*", message.content.lower())
+	skz    = re.search("(skz)|(stray kids)", message.content.lower())
+	ty     = re.search(".*( +|^)((ty)|(thx)|(thank)).*((bot)|(corn))", message.content.lower())
+
+	if wendys is not None:
 		await message.channel.send("NO WENDYS!!!")
 
-	if "skz" in message.content.lower() or "stray kids" in message.content.lower():
+	if skz is not None:
 		await message.channel.send("stfu weeb")
 
-	if ("ty" in message.content.lower() or "thx" in message.content.lower() or "thank" in message.content.lower()) and ("bot" in message.content.lower() or bot.user in message.mentions):
+	if ty is not None:
 		await message.channel.send("YOU'RE WELCOME " + message.author.display_name.upper())
 
 	global cornStorm
@@ -183,6 +186,10 @@ async def reverse(ctx):
 async def forward(ctx):
 	global reverseStorm
 	reverseStorm = 0
+
+@bot.command()
+async def ping(ctx):
+	await ctx.send(str(math.floor(bot.latency * 1000)) + "ms")
 
 @bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
 async def shutdown(ctx, botName: str):
