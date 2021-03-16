@@ -50,7 +50,7 @@ async def on_message(message):
 	if message.content.lower() == "what does it stand for?":
 		await message.channel.send("jaiya sucks")
 
-	wendys = re.search("w+(e|.*)n+d+y*'*s*", message.content.lower())
+	wendys = re.search("w+(e|.*)n+d+y+'*s*", message.content.lower())
 	skz    = re.search("(skz)|(stray kids)", message.content.lower())
 	ty     = re.search(".*( +|^)((ty)|(thx)|(thank)).*((bot)|(corn))", message.content.lower())
 
