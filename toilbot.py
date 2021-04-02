@@ -341,6 +341,10 @@ async def dodrop(ctx):
 	await ctx.send(".drop")
 
 @bot.command()
+async def accountage(ctx):
+	await ctx.send(f"{ctx.author.mention}'s account was made on {ctx.author.created_at}")
+
+@bot.command()
 async def shutdown(ctx, botName: str):
 	if ctx.author.id == botOwner:
 		if botName == "toilbot":
