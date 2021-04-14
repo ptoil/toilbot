@@ -32,6 +32,16 @@ async def on_ready():
 	print(f'{bot.user} has connect to Discord!')
 
 
+@bot.event
+async def on_message(message):
+	if message.author == bot.user:
+		return
+	if message.channel != ctx.channel:
+		await bot.process_commands(message)
+		return
+
+
+"""
 @bot.command()
 async def longtea(ctx):
 	wordFile = open("collins_scrabble.txt", "r")
@@ -310,7 +320,7 @@ async def manytea(ctx):
 		await ctx.send(winOutput)
 		await asyncio.sleep(3)
 		gameCounter += 1
-
+"""
 
 @bot.command(aliases=["moontea"])
 async def moon(ctx):
