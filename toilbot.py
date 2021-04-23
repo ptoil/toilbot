@@ -39,42 +39,66 @@ async def on_ready():
 async def on_message(message):
 	if message.author == bot.user:
 		return
-	if message.channel != ctx.channel:
-		await bot.process_commands(message)
-		return
+#	if message.channel != ctx.channel:
+#		await bot.process_commands(message)
+#		return
+
+	await bot.process_commands(message)
 
 class Tea:
 
-	def __init__(self):
+	def __init__(self, ctx):
+		self.ctx = ctx
+		self.phrase = ""
+		self.word = ""
+		self.timeCounter = 0
+		self.roundOver = 0
+		self.startGame()
+
+	async def startGame(self):
+		scores = {}
+		self.phrase = self.generateWord()
+		self.timer("Type the longest word containing: **" + phrase + "**")
+		
+
 
 
 	def generateWord(self):
-		wordsList = open("collins_scrabble.txt", "r").read().split("\n")
+		rawWords = open("collins_scrabble.txt", "r").read()
+		wordsList = rawWords.split("\n")
 		belowThreshold = 1
 		while belowThreshold == 1:
 			randWord = wordsList[random.randint(0, len(wordsList)-1)]
 			randIndex = random.randint(0, len(randWord)-3)
 			phrase = randWord[randIndex:randIndex+3]
-			frequency = wordsList.count(phrase)
-			if (frequency > freqThreshold):
+			frequency = rawWords.count(phrase)
+			if (frequency > freqThreshold): #make sure phrase appears enough times
+				self.phrase = phrase
+				self.word = randWord
 				belowThreshold = 0
-#			await ctx.send(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
+#			print(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
 
-	def timer(self):
-		timeCounter = 0
-		roundOver = 0
-		async def background_counter():
+	def timer(self, startMsg):
+		async def background_counter(ctx):
 			await bot.wait_until_ready()
 			counterMessage = None
-			nonlocal moons
+			global moons
 			while not bot.is_closed():
-				nonlocal timeCounter
-				if timeCounter == 9:
+				if self.timeCounter == 9:
 					return
-				elif timeCounter == 0:
-					await ctx.send()
+				elif self.timeCounter == 0:
+					await ctx.send(startMsg)
+					counterMessage = await ctx.send(moons[self.timeCounter])
+				else:
+					await counterMessage.edit(content=moons[self.timeCounter])
+				await asyncio.sleep(1)
+				self.timeCounter += 1
+		bot.loop.create_task(background_counter(self.ctx))
 
-
+@bot.command()
+async def teatest(ctx):
+	tea1 = Tea(ctx)
+	return 0
 
 
 
@@ -85,7 +109,7 @@ class Tea:
 async def moon(ctx):
 	counterMessage = None
 	counter = 0
-	nonlocal moons
+	global moons
 	while not bot.is_closed():
 		if counter == 0:
 				counterMessage = await ctx.send(moons[counter])
