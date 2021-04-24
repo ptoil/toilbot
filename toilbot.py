@@ -16,7 +16,7 @@ TOKEN = os.getenv('TOILBOT_TOKEN')
 BOT_OWNER = 205908835435544577;
 
 moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxing_crescent_moon:", ":new_moon:", 
-			 ":waning_crescent_moon:", ":last_quarter_moon:", ":waning_gibbous_moon:", ":full_moon:"]
+		 ":waning_crescent_moon:", ":last_quarter_moon:", ":waning_gibbous_moon:", ":full_moon:"]
 
 #mixtea
 freqThreshold = 500
@@ -27,6 +27,11 @@ emoji_third_place = "🥉"
 emoji_check_mark = "✅"
 
 ########## END CONSTANTS
+########## GLOBALS
+
+teaMode = ""
+
+########## END GLOBALS
 
 bot = commands.Bot(command_prefix='.')
 
@@ -43,6 +48,14 @@ async def on_message(message):
 #		await bot.process_commands(message)
 #		return
 
+	if teaMode != "none":
+		if teaMode == "long":
+			
+		elif teaMode == "quick":
+			print("quick")
+		elif teaMode == "many":
+			print("many")
+
 	await bot.process_commands(message)
 
 class Tea:
@@ -53,12 +66,18 @@ class Tea:
 		self.word = ""
 		self.timeCounter = 0
 		self.roundOver = 0
+		self.scores = {}
+		self.usedWords = []
 		self.startGame()
 
 	async def startGame(self):
-		scores = {}
-		self.phrase = self.generateWord()
-		self.timer("Type the longest word containing: **" + phrase + "**")
+		self.generateWord()
+		self.timer("Type the longest word containing: **" + self.phrase + "**")
+
+		await asyncio.sleep(10)
+		self.roundOver = 1
+
+	def submitWord(self, word, user):
 		
 
 
