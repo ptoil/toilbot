@@ -19,7 +19,7 @@ moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxin
 		 ":waning_crescent_moon:", ":last_quarter_moon:", ":waning_gibbous_moon:", ":full_moon:"]
 
 #mixtea
-freqThreshold = 500
+freq_thresh = 500
 
 emoji_first_place = "🥇"
 emoji_second_place = "🥈"
@@ -29,7 +29,8 @@ emoji_check_mark = "✅"
 ########## END CONSTANTS
 ########## GLOBALS
 
-teaMode = ""
+teaGame = None #will hold the Tea object
+teaMode = "none"
 
 ########## END GLOBALS
 
@@ -38,7 +39,6 @@ bot = commands.Bot(command_prefix='.')
 @bot.event
 async def on_ready():
 	print(f'{bot.user} has connect to Discord!')
-
 
 @bot.event
 async def on_message(message):
@@ -49,8 +49,10 @@ async def on_message(message):
 #		return
 
 	if teaMode != "none":
+		global teaGame
 		if teaMode == "long":
-			
+			if teaGame.submitWord(message.content, message.author):
+				await message.add_reaction(emoji_first_place)
 		elif teaMode == "quick":
 			print("quick")
 		elif teaMode == "many":
@@ -58,42 +60,63 @@ async def on_message(message):
 
 	await bot.process_commands(message)
 
+
 class Tea:
 
 	def __init__(self, ctx):
 		self.ctx = ctx
+		self.rawWords = open("collins_scrabble.txt", "r").read()
+		self.wordsList = self.rawWords.split("\n")
 		self.phrase = ""
-		self.word = ""
+		self.randWord = ""
 		self.timeCounter = 0
 		self.roundOver = 0
 		self.scores = {}
 		self.usedWords = []
-		self.startGame()
+		self.longestWord = ""
+#		self.startGame() #has to be called manually outside the class since it has to be awaited
 
 	async def startGame(self):
 		self.generateWord()
 		self.timer("Type the longest word containing: **" + self.phrase + "**")
-
+		global teaMode
+		teaMode = "long"
 		await asyncio.sleep(10)
+
 		self.roundOver = 1
+		teaMode = "none"
 
-	def submitWord(self, word, user):
-		
+		longestUser = max(self.scores, key=self.scores.get)
+		if self.scores[longestUser] == 0:
+			await self.ctx.send(f"Nobody wins the round. A word that would've been accepted is **{self.randWord}**.")
+		else:
+			await self.ctx.send(f":medal: {longestUser.mention} wins the round with the word: **{self.longestWord}**.")
 
 
+	def submitWord(self, word, user): #change logic for longtea
+		if user not in self.scores:
+			self.scores[user] = 0
+		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and len(word) > self.scores[user]:
+			if word.upper() in self.wordsList: 
+				self.usedWords.append(word.lower())
+				self.scores[user] = len(word)
+				longestUser = max(self.scores, key=self.scores.get)
+				if longestUser == user:
+					self.longestWord = word.upper()
+					return True
+				else: 
+					return False
 
 	def generateWord(self):
-		rawWords = open("collins_scrabble.txt", "r").read()
-		wordsList = rawWords.split("\n")
 		belowThreshold = 1
 		while belowThreshold == 1:
-			randWord = wordsList[random.randint(0, len(wordsList)-1)]
+			randWord = self.wordsList[random.randint(0, len(self.wordsList)-1)]
 			randIndex = random.randint(0, len(randWord)-3)
 			phrase = randWord[randIndex:randIndex+3]
-			frequency = rawWords.count(phrase)
-			if (frequency > freqThreshold): #make sure phrase appears enough times
+			frequency = self.rawWords.count(phrase)
+			if (frequency > freq_thresh): #make sure phrase appears enough times
 				self.phrase = phrase
-				self.word = randWord
+				self.randWord = randWord
 				belowThreshold = 0
 #			print(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
 
@@ -114,10 +137,12 @@ class Tea:
 				self.timeCounter += 1
 		bot.loop.create_task(background_counter(self.ctx))
 
-@bot.command()
+
+@bot.command(aliases=["tt"])
 async def teatest(ctx):
-	tea1 = Tea(ctx)
-	return 0
+	global teaGame
+	teaGame = Tea(ctx)
+	await teaGame.startGame()
 
 
 
