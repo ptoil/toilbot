@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import random
 import asyncio
 import time
+from collections import OrderedDict
 
 ########## CONSTANTS
 
@@ -44,12 +45,9 @@ async def on_ready():
 async def on_message(message):
 	if message.author == bot.user:
 		return
-#	if message.channel != ctx.channel:
-#		await bot.process_commands(message)
-#		return
 
-	if teaMode != "none":
-		global teaGame
+	global teaGame
+	if teaMode != "none" and message.channel == teaGame.ctx.channel:
 		if teaMode == "long":
 			if teaGame.submitWord(message.content, message.author):
 				await message.add_reaction(emoji_first_place)
@@ -71,9 +69,10 @@ class Tea:
 		self.randWord = ""
 		self.timeCounter = 0
 		self.roundOver = 0
-		self.scores = {}
+		self.scores = OrderedDict()
 		self.usedWords = []
 		self.longestWord = ""
+		self.longestUser = None
 #		self.startGame() #has to be called manually outside the class since it has to be awaited
 
 	async def startGame(self):
@@ -86,11 +85,14 @@ class Tea:
 		self.roundOver = 1
 		teaMode = "none"
 
-		longestUser = max(self.scores, key=self.scores.get)
-		if self.scores[longestUser] == 0:
+#		self.scores = self.scores
+		for k in self.scores.keys():
+			await self.ctx.send(f"{k.display_name}: {self.scores[k]}")
+		if self.scores[self.longestUser] == 0:
 			await self.ctx.send(f"Nobody wins the round. A word that would've been accepted is **{self.randWord}**.")
 		else:
-			await self.ctx.send(f":medal: {longestUser.mention} wins the round with the word: **{self.longestWord}**.")
+			winOutput = ""
+			await self.ctx.send(f":medal: {self.longestUser.mention} wins the round with the word: **{self.longestWord}**.")
 
 
 	def submitWord(self, word, user): #change logic for longtea
@@ -100,8 +102,8 @@ class Tea:
 			if word.upper() in self.wordsList: 
 				self.usedWords.append(word.lower())
 				self.scores[user] = len(word)
-				longestUser = max(self.scores, key=self.scores.get)
-				if longestUser == user:
+				self.longestUser = max(self.scores, key=self.scores.get)
+				if self.longestUser == user:
 					self.longestWord = word.upper()
 					return True
 				else: 
@@ -126,12 +128,12 @@ class Tea:
 			counterMessage = None
 			global moons
 			while not bot.is_closed():
-				if self.timeCounter == 9:
+				if self.timeCounter == 9: #timer is done
 					return
-				elif self.timeCounter == 0:
+				elif self.timeCounter == 0: #start timer
 					await ctx.send(startMsg)
 					counterMessage = await ctx.send(moons[self.timeCounter])
-				else:
+				else: #update timer
 					await counterMessage.edit(content=moons[self.timeCounter])
 				await asyncio.sleep(1)
 				self.timeCounter += 1
