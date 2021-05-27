@@ -51,14 +51,14 @@ async def on_message(message):
 		await message.channel.send("jaiya sucks")
 
 	wendys = re.search("w+(e|.*)n+d+y+'*s*", message.content.lower())
-	skz    = re.search("(skz( |$))|(stray kids)|(txt( |$))|(choi( |$))|(soobin( |$))", message.content.lower())
+	weeb   = re.search("(skz( |$))|(stray kids)|(txt( |$))|(choi( |$))|(soobin( |$))|(uwu( |$))", message.content.lower())
 	ty     = re.search(".*( +|^)((ty)|(thx)|(thank)).*((bot)|(corn))", message.content.lower())
 	molang = re.search("molang", message.content.lower())
 
 	if wendys is not None:
 		await message.channel.send("NO WENDYS!!!")
 
-	if skz is not None:
+	if weeb is not None:
 		await message.channel.send("stfu weeb")
 
 	if ty is not None:
