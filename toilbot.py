@@ -32,6 +32,11 @@ emoji_check_mark = "✅"
 
 teaGame = None #will hold the Tea object
 teaMode = "none"
+teaPrompts = {
+	"long":  "Type the longest word containing: ",
+	"quick": "Quickly type a word containing: ",
+	"many":  "Type as many words as possible containing: "
+}
 
 ########## END GLOBALS
 
@@ -49,8 +54,11 @@ async def on_message(message):
 	global teaGame
 	if teaMode != "none" and message.channel == teaGame.ctx.channel:
 		if teaMode == "long":
-			if teaGame.submitWord(message.content, message.author):
+			wordStatus = teaGame.submitWord(message.content, message.author)
+			if wordStatus == 2:
 				await message.add_reaction(emoji_first_place)
+			elif wordStatus == 1:
+				await message.add_reaction(emoji_check_mark)
 		elif teaMode == "quick":
 			print("quick")
 		elif teaMode == "many":
@@ -69,15 +77,13 @@ class Tea:
 		self.randWord = ""
 		self.timeCounter = 0
 		self.roundOver = 0
-		self.scores = OrderedDict()
+		self.scores = {}
 		self.usedWords = []
-		self.longestWord = ""
-		self.longestUser = None
 #		self.startGame() #has to be called manually outside the class since it has to be awaited
 
 	async def startGame(self):
 		self.generateWord()
-		self.timer("Type the longest word containing: **" + self.phrase + "**")
+		self.timer(teaPrompts["long"] + "**" + self.phrase + "**")
 		global teaMode
 		teaMode = "long"
 		await asyncio.sleep(10)
@@ -85,29 +91,32 @@ class Tea:
 		self.roundOver = 1
 		teaMode = "none"
 
-#		self.scores = self.scores
-		for k in self.scores.keys():
-			await self.ctx.send(f"{k.display_name}: {self.scores[k]}")
-		if self.scores[self.longestUser] == 0:
+		sortedScores = sorted(self.scores.items(), key = lambda kv:(kv[1], kv[0]), reverse=True)
+		for i in sortedScores:
+			if i[1] == 0:
+				sortedScores.remove(i)
+
+		if len(sortedScores) == 0:
 			await self.ctx.send(f"Nobody wins the round. A word that would've been accepted is **{self.randWord}**.")
 		else:
 			winOutput = ""
-			await self.ctx.send(f":medal: {self.longestUser.mention} wins the round with the word: **{self.longestWord}**.")
+			i = 0
+			for score in sortedScores:
+				if i == 0:
+					winOutput += ":first_place: "
+				elif i == 1:
+					winOutput += ":second_place: "
+				elif i == 2:
+					winOutput += ":third_place: "
+				else:
+					winOutput += ":medal "
+				winOutput += score[0].mention + " wins " + str(score[1]) + " points.\n" #TODO point scaling
+				i += 1
 
+			await self.ctx.send(winOutput)
 
-	def submitWord(self, word, user): #change logic for longtea
-		if user not in self.scores:
-			self.scores[user] = 0
-		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and len(word) > self.scores[user]:
-			if word.upper() in self.wordsList: 
-				self.usedWords.append(word.lower())
-				self.scores[user] = len(word)
-				self.longestUser = max(self.scores, key=self.scores.get)
-				if self.longestUser == user:
-					self.longestWord = word.upper()
-					return True
-				else: 
-					return False
+#	def submitWord(self, word, user): #overridden by subclasses
+
 
 	def generateWord(self):
 		belowThreshold = 1
@@ -139,6 +148,35 @@ class Tea:
 				self.timeCounter += 1
 		bot.loop.create_task(background_counter(self.ctx))
 
+class LongTea(Tea):
+
+	def __init__(self, ctx):
+		super().__init__(self, ctx)
+		self.longestWord = ""
+
+	def submitWord(self, word, user):
+		if user not in self.scores:
+			self.scores[user] = 0
+		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and len(word) > self.scores[user]:
+			if word.upper() in self.wordsList: 
+				self.usedWords.append(word.lower())
+				self.scores[user] = len(word)
+				longestUser = max(self.scores, key=self.scores.get)
+				if longestUser == user:
+					self.longestWord = word.upper()
+					return 2 #longest word for all
+				else:
+					return 1 #longest word for user
+			else:
+				return 0 #invalid word
+
+
+class QuickTea(Tea):
+	pass
+
+class ManyTea(Tea):
+	pass
+
 
 @bot.command(aliases=["tt"])
 async def teatest(ctx):
@@ -147,6 +185,23 @@ async def teatest(ctx):
 	await teaGame.startGame()
 
 
+@bot.command()
+async def dict(ctx):
+	scores = {}
+	scores["ptoil"] = 5
+	scores["gumies"] = 0
+	scores["pans"] = 8
+
+	sortedScores = sorted(scores.items(), key = lambda kv:(kv[1], kv[0]), reverse=True)
+
+	for i in sortedScores:
+		if i[1] == 0:
+			sortedScores.remove(i)
+
+	output = ""
+	for score in sortedScores:
+		output += score[0] + ": " + str(score[1]) + "\n"	
+	await ctx.send(output)
 
 
 
