@@ -51,9 +51,10 @@ async def on_message(message):
 		await message.channel.send("jaiya sucks")
 
 	wendys = re.search("w+(e|.*)n+d+y+'*s*", message.content.lower())
-	weeb   = re.search("(skz( |$))|(stray kids)|(txt( |$))|(choi( |$))|(soobin( |$))|(uwu( |$))", message.content.lower())
+	weeb   = re.search("((^| )skz( |$))|(stray kids)|((^| )txt( |$))|((^| )choi( |$))|((^| )soobin( |$))|((^| )uwu( |$))|((^| )baka( |$))", message.content.lower())
 	ty     = re.search(".*( +|^)((ty)|(thx)|(thank)).*((bot)|(corn))", message.content.lower())
 	molang = re.search("molang", message.content.lower())
+	stfu   = re.search("(^| )sis( |$)", message.content.lower())
 
 	if wendys is not None:
 		await message.channel.send("NO WENDYS!!!")
@@ -66,6 +67,9 @@ async def on_message(message):
 
 	if molang is not None:
 		await message.channel.send("nolang")
+
+	if stfu is not None:
+		await message.channel.send("stfu")
 
 	global cornStorm
 	rand100 = cornRand(cornStorm)
