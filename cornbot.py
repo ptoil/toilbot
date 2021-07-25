@@ -14,7 +14,8 @@ from discord.ext import commands
 load_dotenv()
 TOKEN = os.getenv("CORNBOT_TOKEN")
 
-botOwner = 205908835435544577;
+botOwner = 205908835435544577
+gumiesID = 569942936939134988
 
 cornFreq = 200
 
@@ -49,6 +50,9 @@ async def on_message(message):
 
 	if message.content.lower() == "what does it stand for?":
 		await message.channel.send("jaiya sucks")
+
+#	print(message.author.display_name)
+#	print(message.author.id)
 
 	wendys = re.search("w+(e|.*)n+d+y+'*s*", message.content.lower())
 	weeb   = re.search("((^| )skz( |$))|(stray kids)|((^| )txt( |$))|((^| )choi( |$))|((^| )soobin( |$))|((^| )uwu( |$))|((^| )baka( |$))", message.content.lower())
@@ -198,6 +202,14 @@ async def forward(ctx):
 @bot.command()
 async def ping(ctx):
 	await ctx.send(str(math.floor(bot.latency * 1000)) + "ms")
+
+@bot.command()
+async def hoopla(ctx):
+	if ctx.author.id == gumiesID:
+		await ctx.send(ctx.author.mention + " STFU!!!")
+	else:
+		for x in range(5):
+			await ctx.send("@everyone STFU!!!")
 
 @bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
 async def shutdown(ctx, botName: str):
