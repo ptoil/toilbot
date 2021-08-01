@@ -22,16 +22,17 @@ moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxin
 #mixtea
 freq_thresh = 500
 
-emoji_first_place = "🥇"
+emoji_first_place  = "🥇"
 emoji_second_place = "🥈"
-emoji_third_place = "🥉"
-emoji_check_mark = "✅"
+emoji_third_place  = "🥉"
+emoji_medal        = "🏅"
+emoji_check_mark   = "✅"
 
 ########## END CONSTANTS
 ########## GLOBALS
 
 teaGame = None #will hold the Tea object
-teaMode = "none"
+#teaMode = "none"
 teaPrompts = {
 	"long":  "Type the longest word containing: ",
 	"quick": "Quickly type a word containing: ",
@@ -40,7 +41,7 @@ teaPrompts = {
 
 ########## END GLOBALS
 
-bot = commands.Bot(command_prefix='.')
+bot = commands.Bot(command_prefix='.', case_insensitive=True)
 
 @bot.event
 async def on_ready():
@@ -52,17 +53,19 @@ async def on_message(message):
 		return
 
 	global teaGame
-	if teaMode != "none" and message.channel == teaGame.ctx.channel:
-		if teaMode == "long":
-			wordStatus = teaGame.submitWord(message.content, message.author)
-			if wordStatus == 2:
-				await message.add_reaction(emoji_first_place)
-			elif wordStatus == 1:
-				await message.add_reaction(emoji_check_mark)
-		elif teaMode == "quick":
-			print("quick")
-		elif teaMode == "many":
-			print("many")
+#	if teaMode != "none" and message.channel == teaGame.ctx.channel:
+	if teaGame is not None and message.channel == teaGame.ctx.channel:
+		wordStatus = teaGame.submitWord(message.content, message.author)
+		if wordStatus == 1:
+			await message.add_reaction(emoji_first_place)
+		elif wordStatus == 2:
+			await message.add_reaction(emoji_second_place)
+		elif wordStatus == 3:
+			await message.add_reaction(emoji_third_place)
+		elif wordStatus == 4:
+			await message.add_reaction(emoji_medal)
+		elif wordStatus == 5:
+			await message.add_reaction(emoji_check_mark)
 
 	await bot.process_commands(message)
 
@@ -83,18 +86,25 @@ class Tea:
 
 	async def startGame(self):
 		self.generateWord()
-		self.timer(teaPrompts["long"] + "**" + self.phrase + "**")
-		global teaMode
-		teaMode = "long"
+		self.timer()
+#		global teaMode
+#		teaMode = "long"
 		await asyncio.sleep(10)
 
 		self.roundOver = 1
-		teaMode = "none"
+#		teaMode = "none"
 
-		sortedScores = sorted(self.scores.items(), key = lambda kv:(kv[1], kv[0]), reverse=True)
+		sortedScores = sorted(self.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
+		removeScores = []
 		for i in sortedScores:
+#			await self.ctx.send(i)
 			if i[1] == 0:
-				sortedScores.remove(i)
+#				sortedScores.remove(i)
+				removeScores.append(i)
+		for i in removeScores:
+			sortedScores.remove(i)
+
+
 
 		if len(sortedScores) == 0:
 			await self.ctx.send(f"Nobody wins the round. A word that would've been accepted is **{self.randWord}**.")
@@ -117,7 +127,6 @@ class Tea:
 
 #	def submitWord(self, word, user): #overridden by subclasses
 
-
 	def generateWord(self):
 		belowThreshold = 1
 		while belowThreshold == 1:
@@ -131,7 +140,7 @@ class Tea:
 				belowThreshold = 0
 #			print(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
 
-	def timer(self, startMsg):
+	def timer(self):
 		async def background_counter(ctx):
 			await bot.wait_until_ready()
 			counterMessage = None
@@ -140,7 +149,7 @@ class Tea:
 				if self.timeCounter == 9: #timer is done
 					return
 				elif self.timeCounter == 0: #start timer
-					await ctx.send(startMsg)
+					await ctx.send(teaPrompts["long"] + "**" + self.phrase + "**")
 					counterMessage = await ctx.send(moons[self.timeCounter])
 				else: #update timer
 					await counterMessage.edit(content=moons[self.timeCounter])
@@ -148,10 +157,11 @@ class Tea:
 				self.timeCounter += 1
 		bot.loop.create_task(background_counter(self.ctx))
 
+
 class LongTea(Tea):
 
 	def __init__(self, ctx):
-		super().__init__(self, ctx)
+		super().__init__(ctx)
 		self.longestWord = ""
 
 	def submitWord(self, word, user):
@@ -164,27 +174,69 @@ class LongTea(Tea):
 				longestUser = max(self.scores, key=self.scores.get)
 				if longestUser == user:
 					self.longestWord = word.upper()
-					return 2 #longest word for all
+					return 1 #longest word for all #first_place
 				else:
-					return 1 #longest word for user
+					return 5 #longest word for user #check_mark
 			else:
-				return 0 #invalid word
+				return None #invalid word
 
 
 class QuickTea(Tea):
-	pass
+	
+	def __init__(self, ctx):
+		super().__init__(ctx)
+		self.placing = 0
+
+	def submitWord(self, word, user):
+		if user not in self.scores:
+			self.scores[user] = 0
+		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and self.scores[user] == 0:
+			if word.upper() in self.wordsList: 
+				self.usedWords.append(word.lower())
+				if self.placing < 4:
+					self.placing += 1
+				self.scores[user] = self.placing
+				return self.placing #1 for 1st, 2 for 2nd, 3 for 3rd, 4 for medals
+			else:
+				return None #invalid word
+
 
 class ManyTea(Tea):
-	pass
+	
+	def __init__(self, ctx):
+		super().__init__(ctx)
+
+	def submitWord(self, word, user):
+		if user not in self.scores:
+			self.scores[user] = 0
+		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords:
+			if word.upper() in self.wordsList:
+				self.usedWords.append(word.lower())
+				self.scores[user] = self.scores[user] + 1
+				return 5 #check_mark
+			else:
+				return None #invalid word
 
 
-@bot.command(aliases=["tt"])
-async def teatest(ctx):
+@bot.command()
+async def longtea(ctx):
 	global teaGame
-	teaGame = Tea(ctx)
+	teaGame = LongTea(ctx)
 	await teaGame.startGame()
 
+@bot.command()
+async def quicktea(ctx):
+	global teaGame
+	teaGame = QuickTea(ctx)
+	await teaGame.startGame()
 
+@bot.command()
+async def manytea(ctx):
+	global teaGame
+	teaGame = ManyTea(ctx)
+	await teaGame.startGame()
+
+"""
 @bot.command()
 async def dict(ctx):
 	scores = {}
@@ -202,7 +254,7 @@ async def dict(ctx):
 	for score in sortedScores:
 		output += score[0] + ": " + str(score[1]) + "\n"	
 	await ctx.send(output)
-
+"""
 
 
 
