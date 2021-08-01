@@ -32,7 +32,6 @@ emoji_check_mark   = "✅"
 ########## GLOBALS
 
 teaGame = None #will hold the Tea object
-#teaMode = "none"
 teaPrompts = {
 	"long":  "Type the longest word containing: ",
 	"quick": "Quickly type a word containing: ",
@@ -53,7 +52,6 @@ async def on_message(message):
 		return
 
 	global teaGame
-#	if teaMode != "none" and message.channel == teaGame.ctx.channel:
 	if teaGame is not None and message.channel == teaGame.ctx.channel:
 		wordStatus = teaGame.submitWord(message.content, message.author)
 		if wordStatus == 1:
@@ -87,19 +85,14 @@ class Tea:
 	async def startGame(self):
 		self.generateWord()
 		self.timer()
-#		global teaMode
-#		teaMode = "long"
 		await asyncio.sleep(10)
 
 		self.roundOver = 1
-#		teaMode = "none"
 
 		sortedScores = sorted(self.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
 		removeScores = []
 		for i in sortedScores:
-#			await self.ctx.send(i)
 			if i[1] == 0:
-#				sortedScores.remove(i)
 				removeScores.append(i)
 		for i in removeScores:
 			sortedScores.remove(i)
@@ -235,27 +228,6 @@ async def manytea(ctx):
 	global teaGame
 	teaGame = ManyTea(ctx)
 	await teaGame.startGame()
-
-"""
-@bot.command()
-async def dict(ctx):
-	scores = {}
-	scores["ptoil"] = 5
-	scores["gumies"] = 0
-	scores["pans"] = 8
-
-	sortedScores = sorted(scores.items(), key = lambda kv:(kv[1], kv[0]), reverse=True)
-
-	for i in sortedScores:
-		if i[1] == 0:
-			sortedScores.remove(i)
-
-	output = ""
-	for score in sortedScores:
-		output += score[0] + ": " + str(score[1]) + "\n"	
-	await ctx.send(output)
-"""
-
 
 
 @bot.command(aliases=["moontea"])
