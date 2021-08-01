@@ -70,6 +70,10 @@ async def on_message(message):
 
 class Tea:
 
+	
+	scores = {}
+	
+
 	def __init__(self, ctx):
 		self.ctx = ctx
 		self.rawWords = open("collins_scrabble.txt", "r").read()
@@ -78,8 +82,8 @@ class Tea:
 		self.randWord = ""
 		self.timeCounter = 0
 		self.roundOver = 0
-		self.scores = {}
 		self.usedWords = []
+#		self.scores = {}
 #		self.startGame() #has to be called manually outside the class since it has to be awaited
 
 	async def startGame(self):
@@ -163,7 +167,7 @@ class LongTea(Tea):
 		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and len(word) > self.scores[user]:
 			if word.upper() in self.wordsList: 
 				self.usedWords.append(word.lower())
-				self.scores[user] = len(word)
+				self.scores[user] = self.scores[user] + len(word)
 				longestUser = max(self.scores, key=self.scores.get)
 				if longestUser == user:
 					self.longestWord = word.upper()
@@ -228,6 +232,11 @@ async def manytea(ctx):
 	global teaGame
 	teaGame = ManyTea(ctx)
 	await teaGame.startGame()
+
+@bot.command()
+async def scores(ctx):
+	global teaGame
+	await ctx.send(teaGame.scores)
 
 
 @bot.command(aliases=["moontea"])
