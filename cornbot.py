@@ -20,14 +20,14 @@ gumiesID = 569942936939134988
 cornFreq = 200
 
 ########## END CONSTANTS
-########## VARIABLES
+########## GLOBALS
 
 cornStorm = 0
 reverseStorm = 0
 
 goblinNum = -1
 
-########## END VARIABLES
+########## END GLOBALS
 
 bot = commands.Bot(command_prefix='.')
 
