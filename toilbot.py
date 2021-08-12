@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import random
 import asyncio
 import time
-from collections import OrderedDict
+import pickle
 
 ########## CONSTANTS
 
@@ -66,6 +66,8 @@ async def on_message(message):
 			await message.add_reaction(emoji_check_mark)
 
 	await bot.process_commands(message)
+
+
 
 
 class Tea:
@@ -177,7 +179,6 @@ class LongTea(Tea):
 			else:
 				return None #invalid word
 
-
 class QuickTea(Tea):
 	
 	def __init__(self, ctx):
@@ -197,7 +198,6 @@ class QuickTea(Tea):
 			else:
 				return None #invalid word
 
-
 class ManyTea(Tea):
 	
 	def __init__(self, ctx):
@@ -213,7 +213,6 @@ class ManyTea(Tea):
 				return 5 #check_mark
 			else:
 				return None #invalid word
-
 
 @bot.command()
 async def longtea(ctx):
@@ -234,9 +233,12 @@ async def manytea(ctx):
 	await teaGame.startGame()
 
 @bot.command()
-async def scores(ctx):
+async def teascores(ctx):
 	global teaGame
 	await ctx.send(teaGame.scores)
+
+
+
 
 
 @bot.command(aliases=["moontea"])
@@ -269,6 +271,34 @@ async def dodrop(ctx):
 @bot.command()
 async def accountage(ctx):
 	await ctx.send(f"{ctx.author.mention}'s account was made on {ctx.author.created_at}")
+
+
+"""
+@bot.command()
+async def newstatus(ctx):
+	activityy = discord.Activity("gumies sucks")
+	await bot.change_presence(status=discord.Status.idle, activity=activityy)
+	#game = discord.Game("with the API")
+	#await bot.change_presence(status=discord.Status.idle, activity=game)
+"""
+
+class PopcornUser:
+
+	def __init__(self, user):
+		self.user = user
+		self.points = 0
+		self
+
+	def addPoint(self):
+		self.points += 1
+
+@bot.command(aliases=["pt"])
+async def popcorntest(ctx):
+	a = PopcornUser(ctx.author)
+
+	
+
+
 
 @bot.command()
 async def shutdown(ctx, botName: str):
