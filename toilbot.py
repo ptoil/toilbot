@@ -294,7 +294,7 @@ class TeaExecuter:
 			self.gamesArray.append("long")
 		for i in range(5):
 			self.gamesArray.append("quick")
-		for i in range(5):
+		for i in range(3):
 			self.gamesArray.append("many")
 		self.gameExited = 0
 
