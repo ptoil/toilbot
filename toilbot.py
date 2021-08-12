@@ -298,8 +298,6 @@ async def popcorntest(ctx):
 
 	
 
-
-
 @bot.command()
 async def shutdown(ctx, botName: str):
 	if ctx.author.id == BOT_OWNER:
