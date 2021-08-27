@@ -93,6 +93,7 @@ async def on_message(message):
 class Tea:
 
 	scores = {}
+	usedPhrases = []
 
 	def __init__(self, ctx):
 		self.ctx = ctx
@@ -119,12 +120,12 @@ class Tea:
 			return #game was quit
 
 		sortedScores = sorted(self.roundScores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
-		removeScores = []
-		for i in sortedScores:
-			if i[1] == 0:
-				removeScores.append(i)
-		for i in removeScores:
-			sortedScores.remove(i)
+#		removeScores = []
+#		for i in sortedScores:
+#			if i[1] == 0:
+#				removeScores.append(i)
+#		for i in removeScores:
+#			sortedScores.remove(i)
 
 		for i in self.roundScores:
 			if i not in self.scores:
@@ -159,9 +160,10 @@ class Tea:
 			randIndex = random.randint(0, len(randWord)-3)
 			phrase = randWord[randIndex:randIndex+3]
 			frequency = self.rawWords.count(phrase)
-			if (frequency > freq_thresh): #make sure phrase appears enough times
+			if (frequency > freq_thresh and phrase not in self.usedPhrases): #make sure phrase appears enough times
 				self.phrase = phrase
 				self.randWord = randWord
+				self.usedPhrases.append(phrase)
 				belowThreshold = 0
 #			print(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
 
@@ -318,13 +320,12 @@ class TeaExecuter:
 		await asyncio.sleep(1)
 
 		sortedScores = sorted(teaGame.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
-		removeScores = []
-		for i in sortedScores:
-			if i[1] == 0:
-				removeScores.append(i)
-		for i in removeScores:
-			sortedScores.remove(i)
-
+#		removeScores = []
+#		for i in sortedScores:
+#			if i[1] == 0:
+#				removeScores.append(i)
+#		for i in removeScores:
+#			sortedScores.remove(i)
 
 		if len(sortedScores) == 0:
 			await self.ctx.send("Nobody wins! HAHAHA! Fuck you!")
@@ -405,6 +406,9 @@ async def mixtea(ctx):
 	teaExecute = TeaExecuter(ctx)
 	await teaExecute.startGame()
 	teaExecute = None
+
+
+
 
 @bot.command()
 async def scores(ctx):
