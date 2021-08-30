@@ -1,34 +1,9 @@
-# toilbot.py
 import discord
 from discord.ext import commands
-import os
-from dotenv import load_dotenv
 
 import random
 import asyncio
-import time
-from collections import OrderedDict
 
-########## CONSTANTS
-
-load_dotenv()
-TOKEN = os.getenv('TOILBOT_TOKEN')
-
-BOT_OWNER = 205908835435544577;
-
-moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxing_crescent_moon:", ":new_moon:", 
-		 ":waning_crescent_moon:", ":last_quarter_moon:", ":waning_gibbous_moon:", ":full_moon:"]
-
-#mixtea
-freq_thresh = 500
-
-emoji_first_place  = "🥇"
-emoji_second_place = "🥈"
-emoji_third_place  = "🥉"
-emoji_medal        = "🏅"
-emoji_check_mark   = "✅"
-
-########## END CONSTANTS
 ########## GLOBALS
 
 teaGame = None #will hold the Tea object
@@ -38,65 +13,26 @@ teaPrompts = {
 	"quick": "**Quickly** type a word containing: ",
 	"many":  "Type as **many** words as possible containing: "
 }
+moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxing_crescent_moon:", ":new_moon:", 
+		 ":waning_crescent_moon:", ":last_quarter_moon:", ":waning_gibbous_moon:", ":full_moon:"]
+freq_thresh = 500
+
+emoji_first_place  = "🥇"
+emoji_second_place = "🥈"
+emoji_third_place  = "🥉"
+emoji_medal        = "🏅"
+emoji_check_mark   = "✅"
 
 ########## END GLOBALS
-
-bot = commands.Bot(command_prefix='.', case_insensitive=True)
-
-@bot.event
-async def on_ready():
-	print(f'{bot.user} has connect to Discord!')
-
-@bot.event
-async def on_message(message):
-	if message.author == bot.user:
-		return
-
-	global teaGame
-	if teaGame is not None and teaGame.isActive() and message.channel == teaGame.ctx.channel:
-		wordStatus = teaGame.submitWord(message.content, message.author)
-		teaMode = teaGame.teaMode
-		if teaMode == "long":
-			if wordStatus == 1:
-				await message.add_reaction(emoji_first_place)
-			elif wordStatus == 2:
-				await message.add_reaction(emoji_check_mark)
-		elif teaMode == "quick":
-			if wordStatus == 1:
-				await message.add_reaction(emoji_first_place)
-			elif wordStatus == 2:
-				await message.add_reaction(emoji_second_place)
-			elif wordStatus == 3:
-				await message.add_reaction(emoji_third_place)
-			elif wordStatus == 4:
-				await message.add_reaction(emoji_medal)
-		elif teaMode == "many":
-			pass
-		else:
-			await message.channel.send("error: w")
-
-
-		if wordStatus == 1:
-			await message.add_reaction(emoji_first_place)
-		elif wordStatus == 2:
-			await message.add_reaction(emoji_second_place)
-		elif wordStatus == 3:
-			await message.add_reaction(emoji_third_place)
-		elif wordStatus == 4:
-			await message.add_reaction(emoji_medal)
-		elif wordStatus == 5:
-			await message.add_reaction(emoji_check_mark)
-
-	await bot.process_commands(message)
-
 
 class Tea:
 
 	scores = {}
 	usedPhrases = []
 
-	def __init__(self, ctx):
+	def __init__(self, ctx, bot):
 		self.ctx = ctx
+		self.bot = bot
 		self.rawWords = open("collins_scrabble.txt", "r").read()
 		self.wordsList = self.rawWords.split("\n")
 		self.phrase = ""
@@ -107,7 +43,6 @@ class Tea:
 		self.roundScores = {}
 		self.teaMode = ""
 		self.active = True
-#		self.startGame() #has to be called manually outside the class since it has to be awaited
 
 	async def startGame(self):
 		self.generateWord()
@@ -120,12 +55,12 @@ class Tea:
 			return #game was quit
 
 		sortedScores = sorted(self.roundScores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
-#		removeScores = []
-#		for i in sortedScores:
-#			if i[1] == 0:
-#				removeScores.append(i)
-#		for i in removeScores:
-#			sortedScores.remove(i)
+#			removeScores = []
+#			for i in sortedScores:
+#				if i[1] == 0:
+#					removeScores.append(i)
+#			for i in removeScores:
+#				sortedScores.remove(i)
 
 		for i in self.roundScores:
 			if i not in self.scores:
@@ -151,7 +86,7 @@ class Tea:
 
 			await self.ctx.send(winOutput)
 
-#	def submitWord(self, word, user): #overridden by subclasses
+#		def submitWord(self, word, user): #overridden by subclasses
 
 	def generateWord(self):
 		belowThreshold = 1
@@ -165,14 +100,14 @@ class Tea:
 				self.randWord = randWord
 				self.usedPhrases.append(phrase)
 				belowThreshold = 0
-#			print(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
+#				print(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
 
 	def timer(self):
 		async def background_counter(ctx):
-			await bot.wait_until_ready()
+			await self.bot.wait_until_ready()
 			counterMessage = None
 			global moons
-			while not bot.is_closed():
+			while not self.bot.is_closed():
 				if self.timeCounter >= 10: #game was quit
 					return
 				elif self.timeCounter == 9: #timer is done
@@ -184,7 +119,7 @@ class Tea:
 					await counterMessage.edit(content=moons[self.timeCounter])
 				self.timeCounter += 1
 				await asyncio.sleep(1)				
-		bot.loop.create_task(background_counter(self.ctx))
+		self.bot.loop.create_task(background_counter(self.ctx))
 
 	def isActive(self):
 		return self.active
@@ -195,8 +130,8 @@ class Tea:
 
 class LongTea(Tea):
 
-	def __init__(self, ctx):
-		super().__init__(ctx)
+	def __init__(self, ctx, bot):
+		super().__init__(ctx, bot)
 		self.teaMode = "long"
 		self.longestWord = ""
 
@@ -235,8 +170,8 @@ class LongTea(Tea):
 
 class QuickTea(Tea):
 	
-	def __init__(self, ctx):
-		super().__init__(ctx)
+	def __init__(self, ctx, bot):
+		super().__init__(ctx, bot)
 		self.teaMode = "quick"
 		self.placing = 0
 
@@ -266,8 +201,8 @@ class QuickTea(Tea):
 
 class ManyTea(Tea):
 	
-	def __init__(self, ctx):
-		super().__init__(ctx)
+	def __init__(self, ctx, bot):
+		super().__init__(ctx, bot)
 		self.teaMode = "many"
 
 	def submitWord(self, word, user):
@@ -289,8 +224,9 @@ class ManyTea(Tea):
 
 class TeaExecuter:
 
-	def __init__(self, ctx):
+	def __init__(self, ctx, bot):
 		self.ctx = ctx
+		self.bot = bot
 		self.gamesArray = []
 		for i in range(5):
 			self.gamesArray.append("long")
@@ -305,11 +241,11 @@ class TeaExecuter:
 		for i in range(len(self.gamesArray)):
 			teaMode = self.gamesArray.pop(random.randint(0, len(self.gamesArray)-1))
 			if teaMode == "long":
-				teaGame = LongTea(self.ctx)
+				teaGame = LongTea(self.ctx, self.bot)
 			elif teaMode == "quick":
-				teaGame = QuickTea(self.ctx)
+				teaGame = QuickTea(self.ctx, self.bot)
 			elif teaMode == "many":
-				teaGame = ManyTea(self.ctx)
+				teaGame = ManyTea(self.ctx, self.bot)
 			else:
 				await self.ctx.send("error: h")
 			await teaGame.startGame()
@@ -320,12 +256,12 @@ class TeaExecuter:
 		await asyncio.sleep(1)
 
 		sortedScores = sorted(teaGame.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
-#		removeScores = []
-#		for i in sortedScores:
-#			if i[1] == 0:
-#				removeScores.append(i)
-#		for i in removeScores:
-#			sortedScores.remove(i)
+#			removeScores = []
+#			for i in sortedScores:
+#				if i[1] == 0:
+#					removeScores.append(i)
+#			for i in removeScores:
+#				sortedScores.remove(i)
 
 		if len(sortedScores) == 0:
 			await self.ctx.send("Nobody wins! HAHAHA! Fuck you!")
@@ -349,134 +285,124 @@ class TeaExecuter:
 	def stop(self):
 		self.gameExited = 1
 
-"""
-@bot.command()
-async def arraytest(ctx):
-	arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-	newArr = []
-	for i in range(0, len(arr)):
-		if len(arr) <= 0:
-			break
-		#newArr.append(arr.pop(random.randint(0, len(arr))))
-		cLen = len(arr)
-		index = random.randint(0, len(arr)-1)
-		print("len: " + str(cLen))
-		print("index: " + str(index))
-		arr.pop(index)
-	#await ctx.send(newArr)
-"""
+class MixTea(commands.Cog):
 
-@bot.command()
-async def longtea(ctx):
-	global teaGame
-	if teaGame is not None:
-		await ctx.send("There is already a game in progress.")
-		return
-	teaGame = LongTea(ctx)
-	await teaGame.startGame()
-	teaGame = None
+	def __init__(self, bot):
+		self.bot = bot
 
-@bot.command()
-async def quicktea(ctx):
-	global teaGame
-	if teaGame is not None:
-		await ctx.send("There is already a game in progress.")
-		return
-	teaGame = QuickTea(ctx)
-	await teaGame.startGame()
-	teaGame = None
-
-@bot.command()
-async def manytea(ctx):
-	global teaGame
-	if teaGame is not None:
-		await ctx.send("There is already a game in progress.")
-		return
-	teaGame = ManyTea(ctx)
-	await teaGame.startGame()
-	teaGame = None
-
-@bot.command()
-async def mixtea(ctx):
-	global teaExecute
-	global teaGame
-	if teaGame is not None:
-		await ctx.send("There is already a game in progress")
-		return
-	teaExecute = TeaExecuter(ctx)
-	await teaExecute.startGame()
-	teaExecute = None
+	@commands.Cog.listener()
+	async def on_message(self, message):
+		if message.author == self.bot.user:
+			return
+		
+		global teaGame
+		if teaGame is not None and teaGame.isActive() and message.channel == teaGame.ctx.channel:
+			wordStatus = teaGame.submitWord(message.content, message.author)
+			teaMode = teaGame.teaMode
+			if teaMode == "long":
+				if wordStatus == 1:
+					await message.add_reaction(emoji_first_place)
+				elif wordStatus == 2:
+					await message.add_reaction(emoji_check_mark)
+			elif teaMode == "quick":
+				if wordStatus == 1:
+					await message.add_reaction(emoji_first_place)
+				elif wordStatus == 2:
+					await message.add_reaction(emoji_second_place)
+				elif wordStatus == 3:
+					await message.add_reaction(emoji_third_place)
+				elif wordStatus == 4:
+					await message.add_reaction(emoji_medal)
+			elif teaMode == "many":
+				pass
+			else:
+				await message.channel.send("error: w")
 
 
+			if wordStatus == 1:
+				await message.add_reaction(emoji_first_place)
+			elif wordStatus == 2:
+				await message.add_reaction(emoji_second_place)
+			elif wordStatus == 3:
+				await message.add_reaction(emoji_third_place)
+			elif wordStatus == 4:
+				await message.add_reaction(emoji_medal)
+			elif wordStatus == 5:
+				await message.add_reaction(emoji_check_mark)
+		
+#		await self.bot.process_commands(message)
+
+	@commands.command()
+	async def longtea(self, ctx):
+		global teaGame
+		if teaGame is not None:
+			await ctx.send("There is already a game in progress.")
+			return
+		teaGame = LongTea(ctx, self.bot)
+		await teaGame.startGame()
+		teaGame = None
+
+	@commands.command()
+	async def quicktea(self, ctx):
+		global teaGame
+		if teaGame is not None:
+			await ctx.send("There is already a game in progress.")
+			return
+		teaGame = QuickTea(ctx, self.bot)
+		await teaGame.startGame()
+		teaGame = None
+
+	@commands.command()
+	async def manytea(self, ctx):
+		global teaGame
+		if teaGame is not None:
+			await ctx.send("There is already a game in progress.")
+			return
+		teaGame = ManyTea(ctx, self.bot)
+		await teaGame.startGame()
+		teaGame = None
+
+	@commands.command()
+	async def mixtea(self, ctx):
+		global teaExecute
+		global teaGame
+		if teaGame is not None:
+			await ctx.send("There is already a game in progress")
+			return
+		teaExecute = TeaExecuter(ctx, self.bot)
+		await teaExecute.startGame()
+		teaExecute = None
 
 
-@bot.command()
-async def scores(ctx):
-	global teaGame
-	if teaGame is None:
-		await ctx.send("No active tea game.")
-		return
-	output = ""
-	sortedScores = sorted(teaGame.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
-	for score in sortedScores:
-		output += score[0].mention + ": " + str(score[1]) + "\n"
-	await ctx.send(output)
-#	await ctx.send(teaGame.scores)
 
-@bot.command()
-async def exitgame(ctx):
-	global teaGame
-	global teaExecute
-	if teaGame is None:
-		await ctx.send("No active tea game.")
-		return
-	teaGame.stop()
-	teaGame = None
-	await ctx.send("Game was quit.")
-	if teaExecute is None:
-		return
-	teaExecute.stop()
-	teaExecute = None
 
-@bot.command(aliases=["moontea"])
-async def moon(ctx):
-	counterMessage = None
-	counter = 0
-	global moons
-	while not bot.is_closed():
-		if counter == 0:
-				counterMessage = await ctx.send(moons[counter])
-		else:
-			await counterMessage.edit(content=moons[counter])
-		await asyncio.sleep(1)
-		counter += 1
-		if counter == 9:
-			return;
+	@commands.command()
+	async def scores(self, ctx):
+		global teaGame
+		if teaGame is None:
+			await ctx.send("No active tea game.")
+			return
+		output = ""
+		sortedScores = sorted(teaGame.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
+		for score in sortedScores:
+			output += score[0].mention + ": " + str(score[1]) + "\n"
+		await ctx.send(output)
+#		await ctx.send(teaGame.scores)
 
-@bot.command()
-async def say(ctx, botName: str, *strInput: str):
-	if ctx.author.id == BOT_OWNER:
-		if (botName == "toilbot"):
-			await ctx.send(" ".join(strInput))
-	else:
-		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
+	@commands.command()
+	async def exitgame(self, ctx):
+		global teaGame
+		global teaExecute
+		if teaGame is None:
+			await ctx.send("No active tea game.")
+			return
+		teaGame.stop()
+		teaGame = None
+		await ctx.send("Game was quit.")
+		if teaExecute is None:
+			return
+		teaExecute.stop()
+		teaExecute = None
 
-@bot.command()
-async def dodrop(ctx):
-	await ctx.send(".drop")
-
-@bot.command()
-async def accountage(ctx):
-	await ctx.send(f"{ctx.author.mention}'s account was made on {ctx.author.created_at}")
-
-@bot.command()
-async def shutdown(ctx, botName: str):
-	if ctx.author.id == BOT_OWNER:
-		if botName == "toilbot":
-			await ctx.send("Shutting down")
-			print("Bot was shutdown")
-			await bot.logout()
-	else:
-		await ctx.send("You don't have permission to use that command.")
-
-bot.run(TOKEN)
+def setup(bot):
+		bot.add_cog(MixTea(bot))

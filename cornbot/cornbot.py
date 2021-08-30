@@ -1,4 +1,3 @@
-# cornbot.py
 import os
 from dotenv import load_dotenv
 
@@ -33,7 +32,7 @@ bot = commands.Bot(command_prefix='.')
 
 @bot.event
 async def on_ready():
-	print(f'{bot.user} has connect to Discord!')
+	print(f'{bot.user} has connected to Discord!')
 
 def cornRand (storm):
 	if storm == 0:
