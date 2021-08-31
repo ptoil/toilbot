@@ -25,6 +25,14 @@ emoji_check_mark   = "✅"
 
 ########## END GLOBALS
 
+class Score:
+
+	def __init__(self):
+		self.score = 0
+		self.words = []
+		self.words.append("")
+
+
 class Tea:
 
 	scores = {}
@@ -40,7 +48,7 @@ class Tea:
 		self.timeCounter = 0
 		self.roundOver = 0
 		self.usedWords = []
-		self.roundScores = {}
+		self.roundScores = {} #{discord.Member, Score[score, word]}
 		self.teaMode = ""
 		self.active = True
 
@@ -54,7 +62,7 @@ class Tea:
 		if self.timeCounter == 10:
 			return #game was quit
 
-		sortedScores = sorted(self.roundScores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
+		sortedScores = sorted(self.roundScores.items(), key = lambda kv:(kv[1].score, kv[0].display_name), reverse=True)
 #			removeScores = []
 #			for i in sortedScores:
 #				if i[1] == 0:
@@ -65,7 +73,7 @@ class Tea:
 		for i in self.roundScores:
 			if i not in self.scores:
 				self.scores[i] = 0
-			self.scores[i] += self.roundScores[i]
+			self.scores[i] += self.roundScores[i].score
 
 		if len(sortedScores) == 0:
 			await self.ctx.send(f"Nobody wins the round. A word that would've been accepted is **{self.randWord}**.")
@@ -81,12 +89,29 @@ class Tea:
 					winOutput += ":third_place: "
 				else:
 					winOutput += ":medal "
-				winOutput += score[0].mention + " wins " + str(score[1]) + " points. (" + str(self.scores[score[0]]) + ")\n" #TODO point scaling
+				if not isinstance(self, ManyTea):
+					if score[1].score > 1:
+						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points with the word **" + score[1].words[0].upper() + "**. (" + str(self.scores[score[0]]) + ")\n"
+					elif score[1].score == 1:
+						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** point with the word **" + score[1].words[0].upper() + "**. (" + str(self.scores[score[0]]) + ")\n"
+					elif score[1].score == 0:
+						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points. (" + str(self.scores[score[0]]) + ")\n"
+					else:
+						print("error: negative score")
+				else:
+					if score[1].score > 1:
+						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points with the word **" + score[1].words[0].upper() + "**. (" + str(self.scores[score[0]]) + ")\n"
+					elif score[1].score == 1:
+						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** point with the word **" + score[1].words[0].upper() + "**. (" + str(self.scores[score[0]]) + ")\n"
+					elif score[1].score == 0:
+						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points. (" + str(self.scores[score[0]]) + ")\n"
+					else:
+						print("error: negative score")
 				i += 1
 
 			await self.ctx.send(winOutput)
 
-#		def submitWord(self, word, user): #overridden by subclasses
+#	def submitWord(self, word, user): #overridden by subclasses
 
 	def generateWord(self):
 		belowThreshold = 1
@@ -100,7 +125,7 @@ class Tea:
 				self.randWord = randWord
 				self.usedPhrases.append(phrase)
 				belowThreshold = 0
-#				print(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
+#			print(f"word: {randWord}\nindex: {randIndex}\nphrase: {phrase}\nfrequency: {frequency}")
 
 	def timer(self):
 		async def background_counter(ctx):
@@ -137,28 +162,28 @@ class LongTea(Tea):
 
 	def submitWord(self, word, user):
 		if user not in self.roundScores:
-			self.roundScores[user] = 0
-		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and len(word) > self.roundScores[user]:
+			self.roundScores[user] = Score()
+		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and len(word) > self.roundScores[user].score:
 			if word.upper() in self.wordsList: 
 				self.usedWords.append(word.lower())
-				#self.roundScores[user] = len(word)
+				self.roundScores[user].words[0] = word.lower()
 				if len(word) == 4:
-					self.roundScores[user] = 1
+					self.roundScores[user].score = 1
 				elif len(word) == 5:
-					self.roundScores[user] = 2
+					self.roundScores[user].score = 2
 				elif len(word) == 6:
-					self.roundScores[user] = 3
+					self.roundScores[user].score = 3
 				elif len(word) == 7 or len(word) == 8:
-					self.roundScores[user] = 4
+					self.roundScores[user].score = 4
 				elif len(word) == 9 or len(word) == 10:
-					self.roundScores[user] = 5
+					self.roundScores[user].score = 5
 				elif len(word) == 11 or len(word) == 12:
-					self.roundScores[user] = 6
+					self.roundScores[user].score = 6
 				elif len(word) >= 13:
-					self.roundScores[user] = 7
+					self.roundScores[user].score = 7
 				else:
 					print("score calculation error")
-				longestUser = max(self.roundScores, key=self.roundScores.get)
+				longestUser = max(self.roundScores, key=lambda x: self.roundScores[x].score)
 				if longestUser == user:
 					self.longestWord = word.upper()
 					return 1 #longest word for all #first_place
@@ -177,21 +202,21 @@ class QuickTea(Tea):
 
 	def submitWord(self, word, user):
 		if user not in self.roundScores:
-			self.roundScores[user] = 0
-		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and self.roundScores[user] == 0:
+			self.roundScores[user] = Score()
+		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and self.roundScores[user].score == 0:
 			if word.upper() in self.wordsList: 
 				self.usedWords.append(word.lower())
+				self.roundScores[user].words[0] = word.lower()
 				if self.placing < 4:
 					self.placing += 1
-				#self.roundScores[user] = self.placing
 				if self.placing == 1:
-					self.roundScores[user] = 5
+					self.roundScores[user].score = 5
 				elif self.placing == 2:
-					self.roundScores[user] = 3
+					self.roundScores[user].score = 3
 				elif self.placing == 3:
-					self.roundScores[user] = 2
+					self.roundScores[user].score = 2
 				elif self.placing > 3:
-					self.roundScores[user] = 1
+					self.roundScores[user].score = 1
 				else:
 					print("score calculation error")
 				return self.placing #1 for 1st, 2 for 2nd, 3 for 3rd, 4 for medals
@@ -207,15 +232,18 @@ class ManyTea(Tea):
 
 	def submitWord(self, word, user):
 		if user not in self.roundScores:
-			self.roundScores[user] = 0
+			self.roundScores[user] = Score()
 		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords:
 			if word.upper() in self.wordsList:
 				self.usedWords.append(word.lower())
-				#self.roundScores[user] += 1
-				if self.roundScores[user] >= 6:
-					self.roundScores[user] += 1
-				elif self.roundScores[user] < 6:
-					self.roundScores[user] += 2
+				if self.roundScores[user].words[0] == "":
+					self.roundScores[user].words[0] = word.lower()
+				else:
+					self.roundScores[user].words.append(word.lower())
+				if self.roundScores[user].score >= 6:
+					self.roundScores[user].score += 1
+				elif self.roundScores[user].score < 6:
+					self.roundScores[user].score += 2
 				else:
 					print("score calculation error")
 				return 5 #check_mark

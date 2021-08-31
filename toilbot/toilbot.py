@@ -8,7 +8,7 @@ import asyncio
 import time
 import logging
 
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
 
 ########## CONSTANTS
 
@@ -21,25 +21,7 @@ moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxin
 		 ":waning_crescent_moon:", ":last_quarter_moon:", ":waning_gibbous_moon:", ":full_moon:"]
 
 
-#emoji_first_place  = "🥇"
-#emoji_second_place = "🥈"
-#emoji_third_place  = "🥉"
-#emoji_medal        = "🏅"
-#emoji_check_mark   = "✅"
-
-
 ########## END CONSTANTS
-########## GLOBALS
-"""
-teaGame = None #will hold the Tea object
-teaExecute = None #for mixtea
-teaPrompts = {
-	"long":  "Type the **longest** word containing: ",
-	"quick": "**Quickly** type a word containing: ",
-	"many":  "Type as **many** words as possible containing: "
-}
-"""
-########## END GLOBALS
 
 bot = commands.Bot(command_prefix='.', case_insensitive=True)
 
@@ -49,48 +31,14 @@ bot.load_extension("cogs.mixtea")
 async def on_ready():
 	print(f'{bot.user} has connected to Discord!')
 
+"""
 @bot.event
 async def on_message(message):
 	if message.author == bot.user:
 		return
-	"""
-	global teaGame
-	if teaGame is not None and teaGame.isActive() and message.channel == teaGame.ctx.channel:
-		wordStatus = teaGame.submitWord(message.content, message.author)
-		teaMode = teaGame.teaMode
-		if teaMode == "long":
-			if wordStatus == 1:
-				await message.add_reaction(emoji_first_place)
-			elif wordStatus == 2:
-				await message.add_reaction(emoji_check_mark)
-		elif teaMode == "quick":
-			if wordStatus == 1:
-				await message.add_reaction(emoji_first_place)
-			elif wordStatus == 2:
-				await message.add_reaction(emoji_second_place)
-			elif wordStatus == 3:
-				await message.add_reaction(emoji_third_place)
-			elif wordStatus == 4:
-				await message.add_reaction(emoji_medal)
-		elif teaMode == "many":
-			pass
-		else:
-			await message.channel.send("error: w")
-
-
-		if wordStatus == 1:
-			await message.add_reaction(emoji_first_place)
-		elif wordStatus == 2:
-			await message.add_reaction(emoji_second_place)
-		elif wordStatus == 3:
-			await message.add_reaction(emoji_third_place)
-		elif wordStatus == 4:
-			await message.add_reaction(emoji_medal)
-		elif wordStatus == 5:
-			await message.add_reaction(emoji_check_mark)
-	"""
+	
 	await bot.process_commands(message)
-
+"""
 
 
 @bot.command(aliases=["moontea"])
@@ -115,10 +63,6 @@ async def say(ctx, botName: str, *strInput: str):
 			await ctx.send(" ".join(strInput))
 	else:
 		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
-
-@bot.command()
-async def dodrop(ctx):
-	await ctx.send(".drop")
 
 @bot.command()
 async def accountage(ctx):
