@@ -89,24 +89,21 @@ class Tea:
 					winOutput += ":third_place: "
 				else:
 					winOutput += ":medal "
-				if not isinstance(self, ManyTea):
-					if score[1].score > 1:
-						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points with the word **" + score[1].words[0].upper() + "**. (" + str(self.scores[score[0]]) + ")\n"
-					elif score[1].score == 1:
-						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** point with the word **" + score[1].words[0].upper() + "**. (" + str(self.scores[score[0]]) + ")\n"
-					elif score[1].score == 0:
-						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points. (" + str(self.scores[score[0]]) + ")\n"
-					else:
-						print("error: negative score")
+				if score[1].score > 1:
+					winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points "
+				elif score[1].score == 1:
+					winOutput += score[0].mention + " wins **" + str(score[1].score) + "** point "
+				elif score[1].score == 0:
+					winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points. "
 				else:
-					if score[1].score > 1:
-						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points with the word **" + score[1].words[0].upper() + "**. (" + str(self.scores[score[0]]) + ")\n"
-					elif score[1].score == 1:
-						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** point with the word **" + score[1].words[0].upper() + "**. (" + str(self.scores[score[0]]) + ")\n"
-					elif score[1].score == 0:
-						winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points. (" + str(self.scores[score[0]]) + ")\n"
+					print("error: negative score")
+				if not isinstance(self, ManyTea):
+					winOutput += "with the word **" + score[1].words[0] + "**. (**" + str(self.scores[score[0]]) + "**)\n"
+				else:
+					if score[1].words[0] == "":
+						winOutput += "with **0** words. (**" + str(self.scores[score[0]]) + "**)\n"
 					else:
-						print("error: negative score")
+						winOutput += "with **" + str(len(score[1].words)) + "** words. (**" + str(self.scores[score[0]]) + "**)\n"
 				i += 1
 
 			await self.ctx.send(winOutput)
@@ -166,7 +163,7 @@ class LongTea(Tea):
 		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and len(word) > self.roundScores[user].score:
 			if word.upper() in self.wordsList: 
 				self.usedWords.append(word.lower())
-				self.roundScores[user].words[0] = word.lower()
+				self.roundScores[user].words[0] = word.upper()
 				if len(word) == 4:
 					self.roundScores[user].score = 1
 				elif len(word) == 5:
@@ -206,7 +203,7 @@ class QuickTea(Tea):
 		if self.phrase.lower() in word.lower() and word.lower() not in self.usedWords and self.roundScores[user].score == 0:
 			if word.upper() in self.wordsList: 
 				self.usedWords.append(word.lower())
-				self.roundScores[user].words[0] = word.lower()
+				self.roundScores[user].words[0] = word.upper()
 				if self.placing < 4:
 					self.placing += 1
 				if self.placing == 1:
@@ -237,9 +234,9 @@ class ManyTea(Tea):
 			if word.upper() in self.wordsList:
 				self.usedWords.append(word.lower())
 				if self.roundScores[user].words[0] == "":
-					self.roundScores[user].words[0] = word.lower()
+					self.roundScores[user].words[0] = word.upper()
 				else:
-					self.roundScores[user].words.append(word.lower())
+					self.roundScores[user].words.append(word.upper())
 				if self.roundScores[user].score >= 6:
 					self.roundScores[user].score += 1
 				elif self.roundScores[user].score < 6:
@@ -412,8 +409,18 @@ class MixTea(commands.Cog):
 			return
 		output = ""
 		sortedScores = sorted(teaGame.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
+		i = 0
 		for score in sortedScores:
+			if i == 0:
+				output += ":first_place: "
+			elif i == 1:
+				output += ":second_place: "
+			elif i == 2:
+				output += ":third_place: "
+			else:
+				output += ":medal "
 			output += score[0].mention + ": " + str(score[1]) + "\n"
+			i += 1
 		await ctx.send(output)
 #		await ctx.send(teaGame.scores)
 
