@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import math
 import random
 import re
+import time
 
 import discord
 from discord.ext import commands
@@ -13,7 +14,7 @@ from discord.ext import commands
 load_dotenv()
 TOKEN = os.getenv("CORNBOT_TOKEN")
 
-botOwner = 205908835435544577
+BOT_OWNER = 205908835435544577
 gumiesID = 569942936939134988
 
 cornFreq = 200
@@ -25,6 +26,9 @@ cornStorm = 0
 reverseStorm = 0
 
 goblinNum = -1
+
+pingCount = 0
+pingCooldown = 0
 
 ########## END GLOBALS
 
@@ -61,16 +65,12 @@ async def on_message(message):
 
 	if wendys is not None:
 		await message.channel.send("NO WENDYS!!!")
-
 	if weeb is not None:
 		await message.channel.send("stfu weeb")
-
 	if ty is not None:
 		await message.channel.send("YOU'RE WELCOME " + message.author.display_name.upper())
-
 	if molang is not None:
 		await message.channel.send("nolang")
-
 	if stfu is not None:
 		await message.channel.send("stfu")
 
@@ -89,6 +89,19 @@ async def on_message(message):
 	if reverseStorm == 1:
 		await message.channel.send(message.content[::-1])
 
+	mentions = message.mentions
+	for mention in mentions:
+		global pingCount
+		global pingCooldown
+		if BOT_OWNER == mention.id or bot.user.id == mention.id:
+			if pingCooldown + 30 < time.time():
+				pingCount = 0
+			if pingCount < 5:
+				pingCount += 1
+			pingCooldown = time.time()
+			for x in range(pingCount):
+				await message.channel.send("STFU!!! " + message.author.mention)
+			
 
 	await bot.process_commands(message) #this fucking line is needed to stop the on_message function from preventing commands from being called
 
@@ -113,7 +126,7 @@ async def noplacelikehome(ctx):
 
 @bot.command()
 async def say(ctx, botName: str, *strInput: str):
-	if ctx.author.id == botOwner:
+	if ctx.author.id == BOT_OWNER:
 		if (botName == "cornbot"):
 			await ctx.send(" ".join(strInput))
 	else:
@@ -212,7 +225,7 @@ async def hoopla(ctx):
 
 @bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
 async def shutdown(ctx, botName: str):
-	if ctx.author.id == botOwner:
+	if ctx.author.id == BOT_OWNER:
 		if botName == "cornbot":
 			await ctx.send("Shutting down")
 			print("Bot was shutdown")
