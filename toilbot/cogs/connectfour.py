@@ -23,11 +23,13 @@ class Game():
 
 	def __init__(self, ctx):
 		self.ctx = ctx
-		self.board = [[0 for j in range(6)] for i in range(7)]
+		self.players = (ctx.message.author, ctx.message.mentions[0])
+		self.currentP = 0
+		self.board = [[-1 for j in range(6)] for i in range(7)]
 		self.color= {
-			0: (0, 0, 0),
-			1: (255, 0, 0), #red
-			2: (255, 255, 0) #yellow
+			-1: (0, 0, 0),
+			0: (255, 0, 0), #red
+			1: (255, 255, 0) #yellow
 		}
 
 	async def sendImage(self, image):
@@ -46,17 +48,85 @@ class Game():
 
 		await self.sendImage(im)
 
+	async def checkForWin(self, i, j):
+		matching = 0
+		for x in range(1, 4): #left
+			if i - x < 0 or self.board[i - x][j] == -1:
+				break
+			if self.board[i - x][j] == self.currentP:
+				matching += 1
+		for x in range(1, 4): #right
+			if i + x > 6 or self.board[i + x][j] == -1:
+				break
+			if self.board[i + x][j] == self.currentP:
+				matching += 1
+		if matching >= 3:
+			await self.ctx.send(f"Winner! LR")
+			return True
+
+		matching = 0
+		for x in range(1, 4): #up
+			if j - x < 0 or self.board[i][j - x] == -1:
+				break
+			if self.board[i][j - x] == self.currentP:
+				matching += 1
+		for x in range(1, 4): #down
+			if j + x > 5 or self.board[i][j + x] == -1:
+				break
+			if self.board[i][j + x] == self.currentP:
+				matching += 1
+		if matching >= 3:
+			await self.ctx.send(f"Winner! UD")
+			return True
+
+		matching = 0
+		for x in range(1, 4): #TL
+			if i - x < 0 or j - x < 0 or self.board[i - x][j - x] == -1:
+				break
+			if self.board[i - x][j - x] == self.currentP:
+				matching += 1
+		for x in range(1, 4): #BR
+			if i + x > 6 or j + x > 5 or self.board[i + x][j + x] == -1:
+				break
+			if self.board[i + x][j + x] == self.currentP:
+				matching += 1
+		if matching >= 3:
+			await self.ctx.send(f"Winner! TLBR")
+			return True
+
+		matching = 0
+		for x in range(1, 4): #BL
+			if i - x < 0 or j + x > 5 or self.board[i - x][j + x] == -1:
+				break
+			if self.board[i - x][j + x] == self.currentP:
+				matching += 1
+		for x in range(1, 4): #TR
+			if i + x > 6 or j - x < 0 or self.board[i + x][j - x] == -1:
+				break
+			if self.board[i + x][j - x] == self.currentP:
+				matching += 1
+		if matching >= 3:
+			await self.ctx.send(f"Winner! BLTR")
+			return True
+
+
 	async def drop(self, player, col):
 		j = 0
-		while self.board[col][j] == 0:
-			if self.board[col][j+1] == 0:
+		while self.board[col][j] == -1:
+			if self.board[col][j+1] == -1:
 				j += 1
 				if (j >= 5): #no pieces in col yet
 					self.board[col][j] = player
 					await self.drawBoard()
+					if await self.checkForWin(col, j):
+						#Theres a winner wpoggers
+					self.currentP = (self.currentP + 1) % 2
 			else:
 				self.board[col][j] = player
 				await self.drawBoard()
+				if await self.checkForWin(col, j):
+					#Theres a winner wpoggers
+				self.currentP = (self.currentP + 1) % 2
 				j += 1 #prevent tripping if below
 
 		if j == 0:
@@ -73,9 +143,9 @@ class ConnectFour(commands.Cog):
 		if message.author == self.bot.user:
 			return
 		
-		global game
-		if game is not None and message.channel == game.ctx.channel:
-			pass
+#		global game
+#		if game is not None and message.channel == game.ctx.channel:
+			
 
 #		await self.bot.process_commands(message)
 
@@ -90,21 +160,17 @@ class ConnectFour(commands.Cog):
 			game = Game(ctx)
 			await game.drawBoard()
 
-
-	@commands.command()
-	async def t1(self, ctx):
-		global game
-		await game.drop(1, 3);
-
-	@commands.command()
-	async def t2(self, ctx):
-		global game
-		await game.drop(2, 5);
-
-	@commands.command()
-	async def t3(self, ctx):
-		global game
-		await game.drop(1, 5);
+	@commands.command(aliases=["p"])
+	async def play(self, ctx, num):
+		if ctx.message.author == game.players[game.currentP]:
+			try:
+				col = int(num)
+				if col < 1 or col > 7:
+					await ctx.send("Number isn't in range")
+				else:
+					await game.drop(game.currentP, col-1)
+			except ValueError:
+				await ctx.send("Invalid input")
 
 def setup(bot):
 		bot.add_cog(ConnectFour(bot))
