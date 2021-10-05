@@ -27,9 +27,10 @@ reverseStorm = 0
 
 goblinNum = -1
 
+""" #ping repellant
 pingCount = 0
 pingCooldown = 0
-
+"""
 ########## END GLOBALS
 
 bot = commands.Bot(command_prefix='.')
@@ -89,6 +90,7 @@ async def on_message(message):
 	if reverseStorm == 1:
 		await message.channel.send(message.content[::-1])
 
+	""" #ping repellant
 	mentions = message.mentions
 	for mention in mentions:
 		global pingCount
@@ -101,7 +103,7 @@ async def on_message(message):
 			pingCooldown = time.time()
 			for x in range(pingCount):
 				await message.channel.send("STFU!!! " + message.author.mention)
-			
+	"""
 
 	await bot.process_commands(message) #this fucking line is needed to stop the on_message function from preventing commands from being called
 
