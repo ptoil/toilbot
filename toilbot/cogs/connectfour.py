@@ -21,8 +21,10 @@ emoji_check_mark   = "✅"
 
 class Game():
 
-	def __init__(self, ctx):
+	def __init__(self, ctx, cf):
 		self.ctx = ctx
+		self.confirm = cf
+		self.confirmed = False
 		self.players = (ctx.message.author, ctx.message.mentions[0])
 		self.currentP = 0
 		self.board = [[-1 for j in range(6)] for i in range(7)]
@@ -31,6 +33,10 @@ class Game():
 			0: (255, 0, 0), #red
 			1: (255, 255, 0) #yellow
 		}
+
+	async def confirmGame(self):
+		self.confirmed = True
+		await self.drawBoard()
 
 	async def sendImage(self, image):
 		with io.BytesIO() as image_bin:
@@ -119,13 +125,13 @@ class Game():
 					self.board[col][j] = player
 					await self.drawBoard()
 					if await self.checkForWin(col, j):
-						#Theres a winner wpoggers
+						await self.ctx.send("winner spotted")
 					self.currentP = (self.currentP + 1) % 2
 			else:
 				self.board[col][j] = player
 				await self.drawBoard()
 				if await self.checkForWin(col, j):
-					#Theres a winner wpoggers
+					await self.ctx.send("winner spotted")
 				self.currentP = (self.currentP + 1) % 2
 				j += 1 #prevent tripping if below
 
@@ -156,13 +162,23 @@ class ConnectFour(commands.Cog):
 		elif len(ctx.message.mentions) > 1:
 			await ctx.send("You can only play against one user at a time")
 		else:
+			confirm = await ctx.send(f"{ctx.message.mentions[0].mention} you wanna play?")
+			await confirm.add_reaction(emoji_check_mark)
 			global game
-			game = Game(ctx)
-			await game.drawBoard()
+			game = Game(ctx, confirm)
+			#wait for on_reaction_add to confirm
+
+	@commands.Cog.listener()
+	async def on_reaction_add(self, reaction, user):
+		global game
+		if game is not None:
+			if reaction.message == game.confirm:
+				if user == game.players[1]:
+					await game.confirmGame()
 
 	@commands.command(aliases=["p"])
 	async def play(self, ctx, num):
-		if ctx.message.author == game.players[game.currentP]:
+		if ctx.message.author == game.players[game.currentP] and game.confirmed:
 			try:
 				col = int(num)
 				if col < 1 or col > 7:
@@ -171,6 +187,28 @@ class ConnectFour(commands.Cog):
 					await game.drop(game.currentP, col-1)
 			except ValueError:
 				await ctx.send("Invalid input")
+
+	@commands.command()
+	async def p1(self, ctx):
+		await self.play(ctx, 1)
+	@commands.command()
+	async def p2(self, ctx):
+		await self.play(ctx, 2)
+	@commands.command()
+	async def p3(self, ctx):
+		await self.play(ctx, 3)
+	@commands.command()
+	async def p4(self, ctx):
+		await self.play(ctx, 4)
+	@commands.command()
+	async def p5(self, ctx):
+		await self.play(ctx, 5)
+	@commands.command()
+	async def p6(self, ctx):
+		await self.play(ctx, 6)
+	@commands.command()
+	async def p7(self, ctx):
+		await self.play(ctx, 7)
 
 def setup(bot):
 		bot.add_cog(ConnectFour(bot))
