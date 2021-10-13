@@ -29,7 +29,6 @@ class Game():
 		self.players = (ctx.message.author, ctx.message.mentions[0])
 		self.currentP = 0
 		self.board = [[-1 for j in range(6)] for i in range(7)]
-		self.winningTiles = None
 		self.color= {
 			-1: (0, 0, 0),
 			0: (255, 0, 0), #red
@@ -69,7 +68,7 @@ class Game():
 			if self.board[i + x][j] == self.currentP:
 				winningTiles.append((i + x, j))
 		if len(winningTiles) >= 4:
-			self.winningTiles = winningTiles
+			await self.winner(winningTiles)
 			return True
 
 		winningTiles = [(i, j)]
@@ -84,7 +83,7 @@ class Game():
 			if self.board[i][j + x] == self.currentP:
 				winningTiles.append((i, j + x))
 		if len(winningTiles) >= 4:
-			self.winningTiles = winningTiles
+			await self.winner(winningTiles)
 			return True
 
 		winningTiles = [(i, j)]
@@ -99,7 +98,7 @@ class Game():
 			if self.board[i + x][j + x] == self.currentP:
 				winningTiles.append((i + x, j + x))
 		if len(winningTiles) >= 4:
-			self.winningTiles = winningTiles
+			await self.winner(winningTiles)
 			return True
 
 		winningTiles = [(i, j)]
@@ -114,7 +113,7 @@ class Game():
 			if self.board[i + x][j - x] == self.currentP:
 				winningTiles.append((i + x, j - x))
 		if len(winningTiles) >= 4:
-			self.winningTiles = winningTiles
+			await self.winner(winningTiles)
 			return True
 
 
@@ -125,16 +124,12 @@ class Game():
 				j += 1
 				if (j >= 5): #no pieces in col yet
 					self.board[col][j] = player
-					if await self.checkForWin(col, j):
-						await self.winner()
-					else:
+					if not await self.checkForWin(col, j):
 						await self.drawBoard()
 						self.currentP = (self.currentP + 1) % 2
 			else:
 				self.board[col][j] = player
-				if await self.checkForWin(col, j):
-					await self.winner()
-				else:
+				if not await self.checkForWin(col, j):
 					await self.drawBoard()
 					self.currentP = (self.currentP + 1) % 2
 					j += 1 #prevent tripping if below
@@ -142,21 +137,21 @@ class Game():
 		if j == 0:
 			await self.ctx.send("col is full")
 
-	async def drawBoardWin(self):
+	async def drawBoardWin(self, winningTiles):
 		im = Image.new("RGBA", (400, 350), (0, 0, 0, 255))
 		draw = ImageDraw.Draw(im)
 		draw.rectangle([(25, 25), (375, 325)], fill=(0, 0, 255))
 		for j in range(6):
 			for i in range(7):
-				if (i, j) in self.winningTiles:
+				if (i, j) in winningTiles:
 					draw.ellipse([(25+(i*50)+5, 25+(j*50)+5), (25+((i+1)*50)-5, 25+((j+1)*50)-5)], fill=self.color[self.board[i][j]], outline=(0, 255, 0), width=3) #fill transparent, outline gold
 				else:
 					draw.ellipse([(25+(i*50)+5, 25+(j*50)+5), (25+((i+1)*50)-5, 25+((j+1)*50)-5)], fill=self.color[self.board[i][j]])
 
 		await self.sendImage(im)
 
-	async def winner(self):
-		await self.drawBoardWin()
+	async def winner(self, winningTiles):
+		await self.drawBoardWin(winningTiles)
 		await self.ctx.send(f"{self.players[self.currentP].mention} wins the game!")
 		global game
 		game = None
