@@ -231,7 +231,7 @@ async def shutdown(ctx, botName: str):
 		if botName == "cornbot":
 			await ctx.send("Shutting down")
 			print("Bot was shutdown")
-			await bot.logout()
+			await bot.close()
 	else:
 		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
 

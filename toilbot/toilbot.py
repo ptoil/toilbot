@@ -75,7 +75,7 @@ async def shutdown(ctx, botName: str):
 		if botName == "toilbot":
 			await ctx.send("Shutting down")
 			print("Bot was shutdown")
-			await bot.logout()
+			await bot.close()
 	else:
 		await ctx.send("You don't have permission to use that command.")
 
