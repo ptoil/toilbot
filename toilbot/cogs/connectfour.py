@@ -116,6 +116,8 @@ class Game():
 			await self.winner(winningTiles)
 			return True
 
+		return False #default if no win found
+
 
 	async def drop(self, player, col):
 		j = 0
@@ -163,16 +165,6 @@ class ConnectFour(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-	@commands.Cog.listener()
-	async def on_message(self, message):
-		if message.author == self.bot.user:
-			return
-		
-#		global game
-#		if game is not None and message.channel == game.ctx.channel:
-			
-
-#		await self.bot.process_commands(message)
 
 	@commands.command(aliases=["c4"])
 	async def connectfour(self, ctx):
