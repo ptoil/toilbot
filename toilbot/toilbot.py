@@ -27,6 +27,7 @@ bot = commands.Bot(command_prefix='.', case_insensitive=True)
 
 bot.load_extension("cogs.mixtea")
 bot.load_extension("cogs.connectfour")
+bot.load_extension("cogs.blackjack")
 
 @bot.event
 async def on_ready():
