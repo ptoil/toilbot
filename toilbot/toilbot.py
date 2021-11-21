@@ -62,6 +62,7 @@ async def say(ctx, botName: str, *strInput: str):
 	if ctx.author.id == BOT_OWNER:
 		if (botName == "toilbot"):
 			await ctx.send(" ".join(strInput))
+			await ctx.message.delete()
 	else:
 		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
 
