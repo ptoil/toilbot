@@ -104,10 +104,10 @@ class Player(Dealer): #player is same as dealer but has money
 		self.id = i
 		self.cooldown = 0
 
-	def dailyMoney(self):
+	def freeMoney(self):
 		if self.cooldown < time.time():
 			self.money += 10
-			self.cooldown = time.time() + 86400
+			self.cooldown = time.time() + 10800
 			return True
 		else:
 			return False
@@ -314,7 +314,7 @@ class Blackjack(commands.Cog):
 	def savePlayers(self):
 		pickle.dump(self.players, open("saves/players.pickle", "wb"))
 
-	@commands.command()
+	@commands.command(aliases=["bj"])
 	async def blackjack(self, ctx, bet):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
@@ -338,11 +338,11 @@ class Blackjack(commands.Cog):
 		else:
 			await ctx.send(error)
 		
-	@commands.command()
-	async def daily(self, ctx):
+	@commands.command(brief="Collect $10 every 3 hours")
+	async def freemoney(self, ctx):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
-		if self.players[ctx.author.id].dailyMoney():
+		if self.players[ctx.author.id].freeMoney():
 			await ctx.send(f"You now have ${self.players[ctx.author.id].money}")
 			self.savePlayers()
 		else:
@@ -351,7 +351,7 @@ class Blackjack(commands.Cog):
 			h, m = divmod(m, 60)
 			await ctx.send(f"{h}hr{m}m{s}s left until you can use this command again.")
 
-	@commands.command()
+	@commands.command(hidden=True)
 	@commands.is_owner()
 	async def givemoney(self, ctx, member: discord.Member, amount):
 		if member.id not in self.players.keys():
@@ -363,7 +363,7 @@ class Blackjack(commands.Cog):
 		await ctx.send(f"{member.mention} now has ${self.players[member.id].money}")
 		self.savePlayers()
 
-	@commands.command()
+	@commands.command(hidden=True)
 	@commands.is_owner()
 	async def setmoney(self, ctx, member: discord.Member, amount):
 		if member.id not in self.players.keys():
@@ -386,10 +386,6 @@ class Blackjack(commands.Cog):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
 		await ctx.send(f"You have ${self.players[ctx.author.id].money}")
-
-	@commands.command()
-	async def h(self, ctx):
-		pass
 	
 
 def setup(bot):
