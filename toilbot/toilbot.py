@@ -8,14 +8,16 @@ import asyncio
 import time
 import logging
 
-#logging.basicConfig(level=logging.INFO)
-
 ########## CONSTANTS
 
 load_dotenv()
 TOKEN = os.getenv('TOILBOT_TOKEN')
 
-BOT_OWNER = 205908835435544577;
+
+#logging.basicConfig(level=logging.INFO)
+
+BOT_OWNER = 205908835435544577
+
 
 moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxing_crescent_moon:", ":new_moon:", 
 		 ":waning_crescent_moon:", ":last_quarter_moon:", ":waning_gibbous_moon:", ":full_moon:"]
@@ -38,7 +40,7 @@ async def on_ready():
 async def on_message(message):
 	if message.author == bot.user:
 		return
-	
+
 	await bot.process_commands(message)
 """
 
@@ -65,10 +67,6 @@ async def say(ctx, botName: str, *strInput: str):
 			await ctx.send(" ".join(strInput))
 	else:
 		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
-
-@bot.command()
-async def accountage(ctx):
-	await ctx.send(f"{ctx.author.mention}'s account was made on {ctx.author.created_at}")
 
 @bot.command()
 async def shutdown(ctx, botName: str):
