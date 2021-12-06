@@ -354,6 +354,9 @@ class Blackjack(commands.Cog):
 		else:
 			if amountF > .01:
 				roundedAmount = round(amountF, 2)
+			else:
+				await ctx.message.reply("The minimum amount to donate is $0.01")
+				return
 			output = ""
 			if amountF != roundedAmount:
 				output += f"Donation has been rounded to {roundedAmount}\n"
@@ -364,7 +367,7 @@ class Blackjack(commands.Cog):
 			output += f"{ctx.author.mention} now has ${self.players[ctx.author.id].money}\n{member.mention} now has ${self.players[member.id].money}"
 			await ctx.send(output)
 			self.savePlayers()
-
+	
 	@donate.error
 	async def donate_error(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
@@ -373,7 +376,7 @@ class Blackjack(commands.Cog):
 			await ctx.message.reply("Please ping the user you want to donate to. For example `.donate @toilbot 5`")
 		else:
 			await ctx.send(f"{type(error)}: {error}")
-
+	
 	@commands.command(brief="Collect $10 every hour")
 	async def freemoney(self, ctx):
 		if ctx.author.id not in self.players.keys():
