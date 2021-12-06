@@ -62,11 +62,15 @@ class Game():
 				break
 			if self.board[i - x][j] == self.currentP:
 				winningTiles.append((i - x, j))
+			else:
+				break
 		for x in range(1, 4): #right
 			if i + x > 6 or self.board[i + x][j] == -1:
 				break
 			if self.board[i + x][j] == self.currentP:
 				winningTiles.append((i + x, j))
+			else:
+				break
 		if len(winningTiles) >= 4:
 			await self.winner(winningTiles)
 			return True
@@ -77,11 +81,15 @@ class Game():
 				break
 			if self.board[i][j - x] == self.currentP:
 				winningTiles.append((i, j - x))
+			else:
+				break
 		for x in range(1, 4): #down
 			if j + x > 5 or self.board[i][j + x] == -1:
 				break
 			if self.board[i][j + x] == self.currentP:
 				winningTiles.append((i, j + x))
+			else:
+				break
 		if len(winningTiles) >= 4:
 			await self.winner(winningTiles)
 			return True
@@ -92,11 +100,15 @@ class Game():
 				break
 			if self.board[i - x][j - x] == self.currentP:
 				winningTiles.append((i - x, j - x))
+			else:
+				break
 		for x in range(1, 4): #BR
 			if i + x > 6 or j + x > 5 or self.board[i + x][j + x] == -1:
 				break
 			if self.board[i + x][j + x] == self.currentP:
 				winningTiles.append((i + x, j + x))
+			else:
+				break
 		if len(winningTiles) >= 4:
 			await self.winner(winningTiles)
 			return True
@@ -107,11 +119,15 @@ class Game():
 				break
 			if self.board[i - x][j + x] == self.currentP:
 				winningTiles.append((i - x, j + x))
+			else:
+				break
 		for x in range(1, 4): #TR
 			if i + x > 6 or j - x < 0 or self.board[i + x][j - x] == -1:
 				break
 			if self.board[i + x][j - x] == self.currentP:
 				winningTiles.append((i + x, j - x))
+			else:
+				break
 		if len(winningTiles) >= 4:
 			await self.winner(winningTiles)
 			return True
@@ -182,7 +198,7 @@ class ConnectFour(commands.Cog):
 			await confirm.add_reaction(emoji_check_mark)
 			await confirm.add_reaction(emoji_red_x)
 			game = Game(ctx, confirm)
-			await asyncio.sleep(30)
+			await asyncio.sleep(60)
 			#wait for on_reaction_add to confirm
 
 			if game is not None:
@@ -216,25 +232,25 @@ class ConnectFour(commands.Cog):
 				except ValueError:
 					await ctx.send("Invalid input")
 
-	@commands.command()
+	@commands.command(hidden=True)
 	async def p1(self, ctx):
 		await self.play(ctx, 1)
-	@commands.command()
+	@commands.command(hidden=True)
 	async def p2(self, ctx):
 		await self.play(ctx, 2)
-	@commands.command()
+	@commands.command(hidden=True)
 	async def p3(self, ctx):
 		await self.play(ctx, 3)
-	@commands.command()
+	@commands.command(hidden=True)
 	async def p4(self, ctx):
 		await self.play(ctx, 4)
-	@commands.command()
+	@commands.command(hidden=True)
 	async def p5(self, ctx):
 		await self.play(ctx, 5)
-	@commands.command()
+	@commands.command(hidden=True)
 	async def p6(self, ctx):
 		await self.play(ctx, 6)
-	@commands.command()
+	@commands.command(hidden=True)
 	async def p7(self, ctx):
 		await self.play(ctx, 7)
 

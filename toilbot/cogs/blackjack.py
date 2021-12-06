@@ -107,7 +107,7 @@ class Player(Dealer): #player is same as dealer but has money
 	def freeMoney(self):
 		if self.cooldown < time.time():
 			self.money += 10
-			self.cooldown = time.time() + 10800
+			self.cooldown = time.time() + 3600
 			return True
 		else:
 			return False
@@ -151,10 +151,11 @@ class Game():
 		
 	async def start(self):
 		self.player.removeCards()
-		if self.bet > self.player.money: #TODO check that bet is an integer before sending to this function
+		if self.bet > self.player.money:
 			return False
 
 		self.player.money -= self.bet
+		self.player.money = round(self.player.money, 2)
 
 		self.dealCards()
 #		self.dealBJ()
@@ -168,8 +169,8 @@ class Game():
 			await self.postPlayerMsgBlackjack()
 			self.dealerEmbed.description = ""
 			await self.dealerMsg.edit(embed=self.dealerEmbed)
-			self.player.money += self.bet * 2.5
-			await self.ctx.message.reply(f"Blackjack!!! You win ${self.bet * 1.5}! You now have ${self.player.money}")
+			self.player.money += round(self.bet * 2.5, 2)
+			await self.ctx.message.reply(f"Blackjack!!! You win ${round(self.bet * 1.5, 2)}! You now have ${self.player.money}")
 		elif self.dealer.score == 21:
 			await self.postDealerMsgBlackjack()
 			await self.postPlayerMsgLoseToBlackjack()
@@ -249,6 +250,7 @@ class Game():
 
 	async def stay(self):
 		self.playerEmbed.description = "You have finished your turn."
+		self.hitStay.stop()
 		await self.playerMsg.edit(view=None)
 		await self.dealerTurn()
 
@@ -268,16 +270,14 @@ class Game():
 			await self.dealerMsg.edit(embed=self.dealerEmbed)
 			i += 1
 		await asyncio.sleep(1)
-		print("a")
 		if self.dealer.score > 21:
 			self.dealerEmbed.description = "Dealer has busted!"
 			self.dealerEmbed.colour = discord.Colour.red()
 			self.playerEmbed.colour = discord.Colour.green()
 			await self.dealerMsg.edit(embed=self.dealerEmbed)			
 			await self.playerMsg.edit(embed=self.playerEmbed)
-			self.player.money += self.bet * 2
+			self.player.money += round(self.bet * 2, 2)
 			await self.ctx.message.reply(f"You win! You now have ${self.player.money}")
-			print("b")
 		else:
 			self.dealerEmbed.description = "Dealer has finished taking their turn"
 			if self.player.score > self.dealer.score:
@@ -285,7 +285,7 @@ class Game():
 				self.playerEmbed.colour = discord.Colour.green()
 				await self.dealerMsg.edit(embed=self.dealerEmbed)			
 				await self.playerMsg.edit(embed=self.playerEmbed)
-				self.player.money += self.bet * 2
+				self.player.money += round(self.bet * 2, 2)
 				await self.ctx.message.reply(f"You win! You now have ${self.player.money}")
 			elif self.player.score < self.dealer.score:
 				self.dealerEmbed.colour = discord.Colour.green()
@@ -296,7 +296,6 @@ class Game():
 			else: # ==
 				self.player.money += self.bet
 				await self.ctx.message.reply(f"It's a tie! Your bet has been returned to you. You have ${self.player.money}")
-		print("c")
 
 class Blackjack(commands.Cog):
 
@@ -321,24 +320,61 @@ class Blackjack(commands.Cog):
 		try:
 			bet = float(bet)
 		except ValueError:
-			await ctx.send("Please enter a number for your bet. For example `.blackjack 5`")
+			await ctx.message.reply("Please enter a number for your bet. For example `.blackjack 5`")
 			return
-		if bet > 0:
-			game = Game(ctx, self.players[ctx.author.id], bet)
+		if bet > .01:
+			roundedBet = round(bet, 2)
+			if bet != roundedBet:
+				await ctx.message.reply(f"Bet has been rounded to {roundedBet}", mention_author=False)
+			game = Game(ctx, self.players[ctx.author.id], roundedBet)
 			if not await game.start():
-				await ctx.send(f"You only have ${self.players[ctx.author.id].money}. You can't bet that much.")
+				await ctx.message.reply(f"You only have ${self.players[ctx.author.id].money}. You can't bet that much.")
 			self.savePlayers()
 		else:
-			await ctx.send("You have to bet more than 0.")
+			await ctx.message.reply("The minimum bet is $0.01")
 
 	@blackjack.error
 	async def blackjack_error(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
-			await ctx.send("Please enter a bet amount. For example `.blackjack 5`")
+			await ctx.message.reply("Please enter a bet amount. For example `.blackjack 5`")
 		else:
-			await ctx.send(error)
+			await ctx.send(f"{type(error)}: {error}")
 		
-	@commands.command(brief="Collect $10 every 3 hours")
+	@commands.command(brief="Give your money to someone else")
+	async def donate(self, ctx, member: discord.Member, amount):
+		if member.id not in self.players.keys():
+			self.players.update({member.id : Player(member.id)})
+		try:
+			amountF = float(amount)
+		except ValueError:
+				await ctx.message.reply("Please enter a number for your donation. For example `.donate @toilbot 5`")
+				return
+		if amountF > self.players[ctx.author.id].money:
+			await ctx.message.reply("You can't donate money you don't have.")
+		else:
+			if amountF > .01:
+				roundedAmount = round(amountF, 2)
+			output = ""
+			if amountF != roundedAmount:
+				output += f"Donation has been rounded to {roundedAmount}\n"
+			self.players[ctx.author.id].money -= roundedAmount
+			self.players[member.id].money += roundedAmount
+			self.players[ctx.author.id].money = round(self.players[ctx.author.id].money, 2)
+			self.players[member.id].money = round(self.players[member.id].money, 2)
+			output += f"{ctx.author.mention} now has ${self.players[ctx.author.id].money}\n{member.mention} now has ${self.players[member.id].money}"
+			await ctx.send(output)
+			self.savePlayers()
+
+	@donate.error
+	async def donate_error(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
+			await ctx.message.reply("Please ping the desired user and enter a donation amount. For example `.donate @toilbot 5`")
+		elif isinstance(error, commands.MemberNotFound):
+			await ctx.message.reply("Please ping the user you want to donate to. For example `.donate @toilbot 5`")
+		else:
+			await ctx.send(f"{type(error)}: {error}")
+
+	@commands.command(brief="Collect $10 every hour")
 	async def freemoney(self, ctx):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
@@ -350,6 +386,16 @@ class Blackjack(commands.Cog):
 			m, s = divmod(secondsLeft, 60)
 			h, m = divmod(m, 60)
 			await ctx.send(f"{h}hr{m}m{s}s left until you can use this command again.")
+
+	@commands.command(hidden=True)
+	@commands.is_owner()
+	async def resetcooldowns(self, ctx):
+		resetted = ""
+		for player in self.players.values():
+			if player.cooldown > time.time():
+				player.cooldown = time.time()
+				resetted += f"<@{player.id}>\n"
+		await ctx.send(f"Cooldowns have been reset for the following users:\n{resetted}")
 
 	@commands.command(hidden=True)
 	@commands.is_owner()
@@ -375,11 +421,14 @@ class Blackjack(commands.Cog):
 		await ctx.send(f"{member.mention} now has ${self.players[member.id].money}")
 		self.savePlayers()
 
+	@resetcooldowns.error
 	@givemoney.error
 	@setmoney.error
 	async def give_error(self, ctx, error):
 		if isinstance(error, commands.NotOwner):
 			await ctx.send("only ptoil can use that command FUNgineer")
+		else:
+			await ctx.send(f"{type(error)}: {error}")
 
 	@commands.command()
 	async def money(self, ctx):
