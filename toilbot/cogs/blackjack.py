@@ -326,7 +326,10 @@ class Blackjack(commands.Cog):
 		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.message.reply("Please enter a bet amount. For example `.blackjack 5`")
 		else:
-			await ctx.send(f"{type(error)}: {error}")
+			if ctx.author.id == 285665864857026560:
+				await ctx.send("stfu half")
+			else:
+				await ctx.send(f"{type(error)}: {error}")
 		
 	@commands.command(brief="Give your money to someone else")
 	async def donate(self, ctx, member: discord.Member, amount):
@@ -363,7 +366,10 @@ class Blackjack(commands.Cog):
 		elif isinstance(error, commands.MemberNotFound):
 			await ctx.message.reply("Please ping the user you want to donate to. For example `.donate @toilbot 5`")
 		else:
-			await ctx.send(f"{type(error)}: {error}")
+			if ctx.author.id == 285665864857026560:
+				await ctx.send("stfu half")
+			else:
+				await ctx.send(f"{type(error)}: {error}")
 	
 	@commands.command(brief="Collect $10 every hour")
 	async def freemoney(self, ctx):
