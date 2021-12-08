@@ -63,12 +63,12 @@ class Tea:
 			return #game was quit
 
 		sortedScores = sorted(self.roundScores.items(), key = lambda kv:(kv[1].score, kv[0].display_name), reverse=True)
-#			removeScores = []
-#			for i in sortedScores:
-#				if i[1] == 0:
-#					removeScores.append(i)
-#			for i in removeScores:
-#				sortedScores.remove(i)
+		removeScores = []
+		for i in sortedScores:
+			if i[1].score == 0:
+				removeScores.append(i)
+		for i in removeScores:
+			sortedScores.remove(i)
 
 		for i in self.roundScores:
 			if i not in self.scores:
@@ -281,12 +281,12 @@ class TeaExecuter:
 		await asyncio.sleep(1)
 
 		sortedScores = sorted(teaGame.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
-#			removeScores = []
-#			for i in sortedScores:
-#				if i[1] == 0:
-#					removeScores.append(i)
-#			for i in removeScores:
-#				sortedScores.remove(i)
+		removeScores = []
+		for i in sortedScores:
+			if i[1].score == 0:
+				removeScores.append(i)
+		for i in removeScores:
+			sortedScores.remove(i)
 
 		if len(sortedScores) == 0:
 			await self.ctx.send("Nobody wins! HAHAHA! Fuck you!")

@@ -7,18 +7,6 @@ import random
 import pickle
 import time
 
-from PIL import Image, ImageDraw
-
-########## GLOBALS
-
-emoji_first_place  = "🥇"
-emoji_second_place = "🥈"
-emoji_third_place  = "🥉"
-emoji_medal        = "🏅"
-emoji_check_mark   = "✅"
-
-########## END GLOBALS
-
 class Card():
 
 	def __init__(self, s, r):
@@ -322,7 +310,7 @@ class Blackjack(commands.Cog):
 		except ValueError:
 			await ctx.message.reply("Please enter a number for your bet. For example `.blackjack 5`")
 			return
-		if bet > .01:
+		if bet >= .01:
 			roundedBet = round(bet, 2)
 			if bet != roundedBet:
 				await ctx.message.reply(f"Bet has been rounded to {roundedBet}", mention_author=False)
@@ -352,7 +340,7 @@ class Blackjack(commands.Cog):
 		if amountF > self.players[ctx.author.id].money:
 			await ctx.message.reply("You can't donate money you don't have.")
 		else:
-			if amountF > .01:
+			if amountF >= .01:
 				roundedAmount = round(amountF, 2)
 			else:
 				await ctx.message.reply("The minimum amount to donate is $0.01")
@@ -387,8 +375,7 @@ class Blackjack(commands.Cog):
 		else:
 			secondsLeft = int(self.players[ctx.author.id].cooldown - time.time())
 			m, s = divmod(secondsLeft, 60)
-			h, m = divmod(m, 60)
-			await ctx.send(f"{h}hr{m}m{s}s left until you can use this command again.")
+			await ctx.send(f"{m}m{s}s left until you can use this command again.")
 
 	@commands.command(hidden=True)
 	@commands.is_owner()

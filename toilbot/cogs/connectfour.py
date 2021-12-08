@@ -43,15 +43,21 @@ class Game():
 		with io.BytesIO() as image_bin:
 			image.save(image_bin, "PNG")
 			image_bin.seek(0)
+			await self.ctx.send(content=f"{self.players[self.currentP].mention}'s turn", file=discord.File(fp=image_bin, filename="image.png"))
+
+	async def sendImageEnd(self, image):
+		with io.BytesIO() as image_bin:
+			image.save(image_bin, "PNG")
+			image_bin.seek(0)
 			await self.ctx.send(file=discord.File(fp=image_bin, filename="image.png"))
 
 	async def drawBoard(self):
-		im = Image.new("RGBA", (400, 350), (0, 0, 0, 255))
+		im = Image.new("RGBA", (350, 300), (0, 0, 0, 255))
 		draw = ImageDraw.Draw(im)
-		draw.rectangle([(25, 25), (375, 325)], fill=(0, 0, 255))
+		draw.rectangle([(0, 0), (350, 300)], fill=(0, 0, 255))
 		for j in range(6):
 			for i in range(7):
-				draw.ellipse([(25+(i*50)+5, 25+(j*50)+5), (25+((i+1)*50)-5, 25+((j+1)*50)-5)], fill=self.color[self.board[i][j]])
+				draw.ellipse([((i*50)+5, (j*50)+5), (((i+1)*50)-5, ((j+1)*50)-5)], fill=self.color[self.board[i][j]])
 
 		await self.sendImage(im)
 
@@ -134,6 +140,12 @@ class Game():
 
 		return False #default if no win found
 
+	async def checkForTie(self):
+		if self.board[0][0] != -1 and self.board[1][0] != -1 and self.board[2][0] != -1 and self.board[3][0] != -1 and self.board[4][0] != -1 and self.board[5][0] != -1 and self.board[6][0] != -1:
+			await self.tie()
+			return True
+		else:
+			return False
 
 	async def drop(self, player, col):
 		j = 0
@@ -142,31 +154,35 @@ class Game():
 				j += 1
 				if (j >= 5): #no pieces in col yet
 					self.board[col][j] = player
-					if not await self.checkForWin(col, j):
-						await self.drawBoard()
+					if not await self.checkForWin(col, j) and not await self.checkForTie():
 						self.currentP = (self.currentP + 1) % 2
+						await self.drawBoard()
+					else:
+						return #so "column is full" doesnt print on a tie
 			else:
 				self.board[col][j] = player
-				if not await self.checkForWin(col, j):
-					await self.drawBoard()
+				if not await self.checkForWin(col, j) and not await self.checkForTie():
 					self.currentP = (self.currentP + 1) % 2
+					await self.drawBoard()
 					j += 1 #prevent tripping if below
+				else:
+					return #so "column is full" doesnt print on a tie
 
 		if j == 0:
-			await self.ctx.send("col is full")
+			await self.ctx.send("That column is full, choose another.")
 
 	async def drawBoardWin(self, winningTiles):
-		im = Image.new("RGBA", (400, 350), (0, 0, 0, 255))
+		im = Image.new("RGBA", (350, 300), (0, 0, 0, 255))
 		draw = ImageDraw.Draw(im)
-		draw.rectangle([(25, 25), (375, 325)], fill=(0, 0, 255))
+		draw.rectangle([(0, 0), (350, 300)], fill=(0, 0, 255))
 		for j in range(6):
 			for i in range(7):
 				if (i, j) in winningTiles:
-					draw.ellipse([(25+(i*50)+5, 25+(j*50)+5), (25+((i+1)*50)-5, 25+((j+1)*50)-5)], fill=self.color[self.board[i][j]], outline=(0, 255, 0), width=3) #fill transparent, outline gold
+					draw.ellipse([((i*50)+5, (j*50)+5), (((i+1)*50)-5, ((j+1)*50)-5)], fill=self.color[self.board[i][j]], outline=(0, 255, 0), width=3) #fill transparent, outline gold
 				else:
-					draw.ellipse([(25+(i*50)+5, 25+(j*50)+5), (25+((i+1)*50)-5, 25+((j+1)*50)-5)], fill=self.color[self.board[i][j]])
+					draw.ellipse([((i*50)+5, (j*50)+5), (((i+1)*50)-5, ((j+1)*50)-5)], fill=self.color[self.board[i][j]])
 
-		await self.sendImage(im)
+		await self.sendImageEnd(im)
 
 	async def winner(self, winningTiles):
 		await self.drawBoardWin(winningTiles)
@@ -174,13 +190,18 @@ class Game():
 		global game
 		game = None
 
+	async def tie(self):
+		await self.drawBoardWin([]) #no winning tiles
+		await self.ctx.send("Its a tie! Nobody wins")
+		global game
+		game = None
 
 
 class ConnectFour(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
-
+		self.games = {}
 
 	@commands.command(aliases=["c4"])
 	async def connectfour(self, ctx):
