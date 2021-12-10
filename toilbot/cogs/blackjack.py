@@ -5,6 +5,7 @@ import asyncio
 import io
 import random
 import pickle
+import json
 import time
 
 class Card():
@@ -86,10 +87,10 @@ class Dealer():
 				self.score -= 10
 
 class Player(Dealer): #player is same as dealer but has money
-	def __init__(self, i):
+	def __init__(self, member):
 		super().__init__()
 		self.money = 0
-		self.id = i
+		self.discordMember = member
 		self.cooldown = 0
 
 	def freeMoney(self):
@@ -102,6 +103,9 @@ class Player(Dealer): #player is same as dealer but has money
 
 	def removeCards(self):
 		self.cards.clear()
+
+#	def toJSON(self):
+#		return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
 class HitStay(discord.ui.View):
 
@@ -295,16 +299,19 @@ class Blackjack(commands.Cog):
 	async def on_ready(self):
 		try:
 			self.players = pickle.load(open("saves/players.pickle", "rb"))
+#			self.players = json.load(open("saves/players.json", "rb"))
 		except FileNotFoundError:
-			pickle.dump(self.players, open("saves/players.pickle", "wb"))
+			json.dump(self.players, open("saves/players.json", "w"))
+#			pickle.dump(self.players, open("saves/players.pickle", "wb"))
 
 	def savePlayers(self):
 		pickle.dump(self.players, open("saves/players.pickle", "wb"))
+#		json.dump(self.players, open("saves/players.json", "w"))
 
 	@commands.command(aliases=["bj"])
 	async def blackjack(self, ctx, bet):
 		if ctx.author.id not in self.players.keys():
-			self.players.update({ctx.author.id : Player(ctx.author.id)})
+			self.players.update({ctx.author.id : Player(ctx.author)})
 		try:
 			bet = float(bet)
 		except ValueError:
@@ -333,8 +340,10 @@ class Blackjack(commands.Cog):
 		
 	@commands.command(brief="Give your money to someone else")
 	async def donate(self, ctx, member: discord.Member, amount):
+		if ctx.author.id not in self.players.keys():
+			self.players.update({ctx.author.id : Player(ctx.author)})
 		if member.id not in self.players.keys():
-			self.players.update({member.id : Player(member.id)})
+			self.players.update({member.id : Player(member)})
 		try:
 			amountF = float(amount)
 		except ValueError:
@@ -374,14 +383,14 @@ class Blackjack(commands.Cog):
 	@commands.command(brief="Collect $10 every hour")
 	async def freemoney(self, ctx):
 		if ctx.author.id not in self.players.keys():
-			self.players.update({ctx.author.id : Player(ctx.author.id)})
+			self.players.update({ctx.author.id : Player(ctx.author)})
 		if self.players[ctx.author.id].freeMoney():
-			await ctx.send(f"You now have ${self.players[ctx.author.id].money}")
+			await ctx.message.reply(f"You now have ${self.players[ctx.author.id].money}")
 			self.savePlayers()
 		else:
 			secondsLeft = int(self.players[ctx.author.id].cooldown - time.time())
 			m, s = divmod(secondsLeft, 60)
-			await ctx.send(f"{m}m{s}s left until you can use this command again.")
+			await ctx.message.reply(f"{m}m{s}s left until you can use this command again.")
 
 	@commands.command(hidden=True)
 	@commands.is_owner()
@@ -397,7 +406,7 @@ class Blackjack(commands.Cog):
 	@commands.is_owner()
 	async def givemoney(self, ctx, member: discord.Member, amount):
 		if member.id not in self.players.keys():
-			self.players.update({member.id : Player(member.id)})
+			self.players.update({member.id : Player(member)})
 		try:
 			self.players[member.id].money += float(amount)
 		except ValueError:
@@ -409,7 +418,7 @@ class Blackjack(commands.Cog):
 	@commands.is_owner()
 	async def setmoney(self, ctx, member: discord.Member, amount):
 		if member.id not in self.players.keys():
-			self.players.update({member.id : Player(member.id)})
+			self.players.update({member.id : Player(member)})
 		try:
 			self.players[member.id].money = float(amount)
 		except ValueError:
@@ -437,6 +446,20 @@ class Blackjack(commands.Cog):
 		else:
 			await ctx.message.reply(f"{member.display_name} has ${self.players[member.id].money}")
 	
+	@commands.command()
+	async def leaderboard(self, ctx):
+		sortedPlayers = sorted(self.players.items(), key = lambda kv:(kv[1].money), reverse=True)
+
+		output = ""
+		for player in sortedPlayers:
+			for user in ctx.guild.members:
+				if player[0] == user.id:
+					output += f"{user.display_name}: {player[1].money}\n"
+					break
+			#else player is from another server, so dont print
+
+		await ctx.send(f"Leaderboard:\n{output}")
+
 
 def setup(bot):
 		bot.add_cog(Blackjack(bot))

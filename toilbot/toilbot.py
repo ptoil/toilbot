@@ -25,7 +25,9 @@ moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxin
 
 ########## END CONSTANTS
 
-bot = commands.Bot(command_prefix='.', case_insensitive=True)
+intents = discord.Intents(messages=True, members=True, guilds=True)
+bot = commands.Bot(command_prefix='.', case_insensitive=True, intents=intents)
+
 
 bot.load_extension("cogs.mixtea")
 bot.load_extension("cogs.connectfour")
