@@ -427,10 +427,15 @@ class Blackjack(commands.Cog):
 			await ctx.send(f"{type(error)}: {error}")
 
 	@commands.command()
-	async def money(self, ctx):
-		if ctx.author.id not in self.players.keys():
-			self.players.update({ctx.author.id : Player(ctx.author.id)})
-		await ctx.send(f"You have ${self.players[ctx.author.id].money}")
+	async def money(self, ctx, member: discord.Member=None):
+		if member is None:
+			member = ctx.author
+		if member.id not in self.players.keys():
+			self.players.update({member.id : Player(member)})
+		if member == ctx.author:
+			await ctx.message.reply(f"You have ${self.players[member.id].money}")
+		else:
+			await ctx.message.reply(f"{member.display_name} has ${self.players[member.id].money}")
 	
 
 def setup(bot):
