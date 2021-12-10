@@ -88,10 +88,10 @@ class Dealer():
 				self.score -= 10
 
 class Player(Dealer): #player is same as dealer but has money
-	def __init__(self, member):
+	def __init__(self, i):
 		super().__init__()
 		self.money = 0
-		self.discordMember = member
+		self.id = i
 		self.cooldown = 0
 
 	def freeMoney(self):
@@ -312,7 +312,7 @@ class Blackjack(commands.Cog):
 	@commands.command(aliases=["bj"])
 	async def blackjack(self, ctx, bet):
 		if ctx.author.id not in self.players.keys():
-			self.players.update({ctx.author.id : Player(ctx.author)})
+			self.players.update({ctx.author.id : Player(ctx.author.id)})
 		try:
 			bet = float(bet)
 		except ValueError:
@@ -342,7 +342,7 @@ class Blackjack(commands.Cog):
 	@commands.command(brief="Give your money to someone else")
 	async def donate(self, ctx, member: discord.Member, amount):
 		if ctx.author.id not in self.players.keys():
-			self.players.update({ctx.author.id : Player(ctx.author)})
+			self.players.update({ctx.author.id : Player(ctx.author.id)})
 		if member.id not in self.players.keys():
 			self.players.update({member.id : Player(member)})
 		try:
@@ -384,7 +384,7 @@ class Blackjack(commands.Cog):
 	@commands.command(brief="Collect $10 every hour")
 	async def freemoney(self, ctx):
 		if ctx.author.id not in self.players.keys():
-			self.players.update({ctx.author.id : Player(ctx.author)})
+			self.players.update({ctx.author.id : Player(ctx.author.id)})
 		if self.players[ctx.author.id].freeMoney():
 			await ctx.message.reply(f"You now have ${self.players[ctx.author.id].money}")
 			self.savePlayers()
@@ -407,7 +407,7 @@ class Blackjack(commands.Cog):
 	@commands.is_owner()
 	async def givemoney(self, ctx, member: discord.Member, amount):
 		if member.id not in self.players.keys():
-			self.players.update({member.id : Player(member)})
+			self.players.update({member.id : Player(member.id)})
 		try:
 			self.players[member.id].money += float(amount)
 		except ValueError:
@@ -419,7 +419,7 @@ class Blackjack(commands.Cog):
 	@commands.is_owner()
 	async def setmoney(self, ctx, member: discord.Member, amount):
 		if member.id not in self.players.keys():
-			self.players.update({member.id : Player(member)})
+			self.players.update({member.id : Player(member.id)})
 		try:
 			self.players[member.id].money = float(amount)
 		except ValueError:
@@ -441,7 +441,7 @@ class Blackjack(commands.Cog):
 		if member is None:
 			member = ctx.author
 		if member.id not in self.players.keys():
-			self.players.update({member.id : Player(member)})
+			self.players.update({member.id : Player(member.id)})
 		if member == ctx.author:
 			await ctx.message.reply(f"You have ${self.players[member.id].money}")
 		else:
