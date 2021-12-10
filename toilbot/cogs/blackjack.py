@@ -7,6 +7,7 @@ import random
 import pickle
 import json
 import time
+from table2ascii import table2ascii as t2a, PresetStyle
 
 class Card():
 
@@ -449,16 +450,19 @@ class Blackjack(commands.Cog):
 	@commands.command()
 	async def leaderboard(self, ctx):
 		sortedPlayers = sorted(self.players.items(), key = lambda kv:(kv[1].money), reverse=True)
-
-		output = ""
+		guildPlayers = []
 		for player in sortedPlayers:
-			for user in ctx.guild.members:
-				if player[0] == user.id:
-					output += f"{user.display_name}: {player[1].money}\n"
-					break
-			#else player is from another server, so dont print
+				user = ctx.guild.get_member(player[0])
+				if user is not None:
+					guildPlayers.append([user.display_name, str(player[1].money)])
+				#else player is from another server, so dont print
 
-		await ctx.send(f"Leaderboard:\n{output}")
+		output = t2a(
+			header=["Player", "Money"],
+			body=guildPlayers,
+			style=PresetStyle.thin_compact
+		)
+		await ctx.send(f"```\n{output}\n```")
 
 
 def setup(bot):
