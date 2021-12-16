@@ -10,9 +10,6 @@ import time
 import re
 from table2ascii import table2ascii as t2a, PresetStyle
 
-import locale
-locale.setlocale(locale.LC_ALL, 'en_CA.UTF-8')
-
 class Card():
 
 	def __init__(self, s, r):
@@ -131,6 +128,9 @@ class HitStay(discord.ui.View):
 			await self.game.stay()
 			self.stop()
 
+def formatMoney(money):
+	return "${:,.2f}".format(money)
+
 class Game():
 
 	def __init__(self, ctx, p, b):
@@ -161,18 +161,18 @@ class Game():
 			await self.postDealerMsgBlackjack()
 			await self.postPlayerMsgBlackjack()
 			self.player.money += self.bet
-			await self.ctx.message.reply(f"It's a tie! Your bet has been returned to you. You have {locale.currency(self.player.money, grouping=True)}")
+			await self.ctx.message.reply(f"It's a tie! Your bet has been returned to you. You have {formatMoney(self.player.money)}")
 		elif self.player.score == 21:
 			await self.postDealerMsg()
 			await self.postPlayerMsgBlackjack()
 			self.dealerEmbed.description = ""
 			await self.dealerMsg.edit(embed=self.dealerEmbed)
 			self.player.money += self.bet * 2.5
-			await self.ctx.message.reply(f"Blackjack!!! You win {locale.currency(self.bet * 1.5, grouping=True)}! You now have {locale.currency(self.player.money, grouping=True)}")
+			await self.ctx.message.reply(f"Blackjack!!! You win {formatMoney(self.bet * 1.5)}! You now have {formatMoney(self.player.money)}")
 		elif self.dealer.score == 21:
 			await self.postDealerMsgBlackjack()
 			await self.postPlayerMsgLoseToBlackjack()
-			await self.ctx.message.reply(f"The Dealer got a blackjack! You lose! You now have {locale.currency(self.player.money, grouping=True)}")
+			await self.ctx.message.reply(f"The Dealer got a blackjack! You lose! You now have {formatMoney(self.player.money)}")
 		else:
 			await self.postDealerMsg()
 			await self.postPlayerMsg()
@@ -242,7 +242,7 @@ class Game():
 			await self.dealerMsg.edit(embed=self.dealerEmbed)
 			self.hitStay.stop()
 			await self.playerMsg.edit(embed=self.playerEmbed, view=None)
-			await self.ctx.message.reply(f"You busted! The Dealer takes your bet. You now have {locale.currency(self.player.money, grouping=True)}")
+			await self.ctx.message.reply(f"You busted! The Dealer takes your bet. You now have {formatMoney(self.player.money)}")
 		else:
 			await self.playerMsg.edit(embed=self.playerEmbed)
 
@@ -275,7 +275,7 @@ class Game():
 			await self.dealerMsg.edit(embed=self.dealerEmbed)			
 			await self.playerMsg.edit(embed=self.playerEmbed)
 			self.player.money += self.bet * 2
-			await self.ctx.message.reply(f"You win! You now have {locale.currency(self.player.money, grouping=True)}")
+			await self.ctx.message.reply(f"You win! You now have {formatMoney(self.player.money)}")
 		else:
 			self.dealerEmbed.description = "Dealer has finished taking their turn"
 			if self.player.score > self.dealer.score:
@@ -284,16 +284,16 @@ class Game():
 				await self.dealerMsg.edit(embed=self.dealerEmbed)			
 				await self.playerMsg.edit(embed=self.playerEmbed)
 				self.player.money += self.bet * 2
-				await self.ctx.message.reply(f"You win! You now have {locale.currency(self.player.money, grouping=True)}")
+				await self.ctx.message.reply(f"You win! You now have {formatMoney(self.player.money)}")
 			elif self.player.score < self.dealer.score:
 				self.dealerEmbed.colour = discord.Colour.green()
 				self.playerEmbed.colour = discord.Colour.red()
 				await self.dealerMsg.edit(embed=self.dealerEmbed)			
 				await self.playerMsg.edit(embed=self.playerEmbed)
-				await self.ctx.message.reply(f"You lose! You now have {locale.currency(self.player.money, grouping=True)}")
+				await self.ctx.message.reply(f"You lose! You now have {formatMoney(self.player.money)}")
 			else: # ==
 				self.player.money += self.bet
-				await self.ctx.message.reply(f"It's a tie! Your bet has been returned to you. You have {locale.currency(self.player.money, grouping=True)}")
+				await self.ctx.message.reply(f"It's a tie! Your bet has been returned to you. You have {formatMoney(self.player.money)}")
 
 class Blackjack(commands.Cog):
 
@@ -331,12 +331,12 @@ class Blackjack(commands.Cog):
 		if bet >= .01:
 			roundedBet = round(bet, 2)
 			if bet != roundedBet and not allin:
-				await ctx.message.reply(f"Bet has been rounded to {locale.currency(self.players[ctx.author.id].money, grouping=True)}")
+				await ctx.message.reply(f"Bet has been rounded to {formatMoney(self.players[ctx.author.id].money)}")
 			elif allin:
-				await ctx.message.reply(f"You've gone all in with {locale.currency(self.players[ctx.author.id].money, grouping=True)}")
+				await ctx.message.reply(f"You've gone all in with {formatMoney(self.players[ctx.author.id].money)}")
 			game = Game(ctx, self.players[ctx.author.id], roundedBet)
 			if not await game.start():
-				await ctx.message.reply(f"You only have {locale.currency(self.players[ctx.author.id].money, grouping=True)}. You can't bet that much.")
+				await ctx.message.reply(f"You only have {formatMoney(self.players[ctx.author.id].money)}. You can't bet that much.")
 			self.savePlayers()
 		else:
 			await ctx.message.reply("The minimum bet is $0.01")
@@ -372,7 +372,7 @@ class Blackjack(commands.Cog):
 				output += f"Donation has been rounded to {roundedAmount}\n"
 			self.players[ctx.author.id].money -= roundedAmount
 			self.players[member.id].money += roundedAmount
-			output += f"{ctx.author.mention} now has {locale.currency(self.players[ctx.author.id].money, grouping=True)}\n{member.mention} now has {locale.currency(self.players[member.id].money, grouping=True)}"
+			output += f"{ctx.author.mention} now has {formatMoney(self.players[ctx.author.id].money)}\n{member.mention} now has {formatMoney(self.players[member.id].money)}"
 			await ctx.send(output)
 			self.savePlayers()
 	
@@ -391,7 +391,7 @@ class Blackjack(commands.Cog):
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
 		ret = self.players[ctx.author.id].freeMoney()
 		if ret == 0:
-			await ctx.message.reply(f"You now have {locale.currency(self.players[ctx.author.id].money, grouping=True)}")
+			await ctx.message.reply(f"You now have {formatMoney(self.players[ctx.author.id].money)}")
 			self.savePlayers()
 		elif ret == 1:
 			secondsLeft = int(self.players[ctx.author.id].cooldown - time.time())
@@ -419,7 +419,7 @@ class Blackjack(commands.Cog):
 			self.players[member.id].money += float(amount)
 		except ValueError:
 			await ctx.send("Number required")
-		await ctx.send(f"{member.mention} now has {locale.currency(self.players[member.id].money, grouping=True)}")
+		await ctx.send(f"{member.mention} now has {formatMoney(elf.players[member.id].money)}")
 		self.savePlayers()
 
 	@commands.command(hidden=True)
@@ -431,7 +431,7 @@ class Blackjack(commands.Cog):
 			self.players[member.id].money = float(amount)
 		except ValueError:
 			await ctx.send("Number required")
-		await ctx.send(f"{member.mention} now has {locale.currency(self.players[member.id].money, grouping=True)}")
+		await ctx.send(f"{member.mention} now has {formatMoney(self.players[member.id].money)}")
 		self.savePlayers()
 
 	@commands.command()
@@ -440,10 +440,12 @@ class Blackjack(commands.Cog):
 			member = ctx.author
 		if member.id not in self.players.keys():
 			self.players.update({member.id : Player(member.id)})
+
+#		money = "${:,.2f}".format(self.players[member.id].money)
 		if member == ctx.author:
-			await ctx.message.reply(f"You have {locale.currency(self.players[member.id].money, grouping=True)}")
+			await ctx.message.reply(f"You have {formatMoney(self.players[member.id].money)}")
 		else:
-			await ctx.message.reply(f"{member.display_name} has {locale.currency(self.players[member.id].money, grouping=True)}")
+			await ctx.message.reply(f"{member.display_name} has {formatMoney(self.players[member.id].money)}")
 	
 	@resetcooldowns.error
 	@givemoney.error
@@ -464,7 +466,7 @@ class Blackjack(commands.Cog):
 		for player in sortedPlayers:
 				user = ctx.guild.get_member(player[0])
 				if user is not None:
-					guildPlayers.append([user.display_name, locale.currency(player[1].money, grouping=True)])
+					guildPlayers.append([user.display_name, "${:,.2f}".format(self.players[user.id].money)])
 				#else player is from another server, so dont print
 
 		output = t2a(
