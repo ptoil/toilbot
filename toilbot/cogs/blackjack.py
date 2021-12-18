@@ -419,7 +419,7 @@ class Blackjack(commands.Cog):
 			self.players[member.id].money += float(amount)
 		except ValueError:
 			await ctx.send("Number required")
-		await ctx.send(f"{member.mention} now has {formatMoney(elf.players[member.id].money)}")
+		await ctx.send(f"{member.mention} now has {formatMoney(self.players[member.id].money)}")
 		self.savePlayers()
 
 	@commands.command(hidden=True)
@@ -476,6 +476,20 @@ class Blackjack(commands.Cog):
 		)
 		await ctx.send(f"```\n{output}\n```")
 
+	@commands.command(hidden=True)
+	async def globalleaderboard(self, ctx):
+		sortedPlayers = sorted(self.players.items(), key = lambda kv:(kv[1].money), reverse=True)
+		players = []
+		for player in sortedPlayers:
+				user = self.bot.get_user(player[0])
+				players.append([user.name, "${:,.2f}".format(self.players[user.id].money)])
+
+		output = t2a(
+			header=["Player", "Money"],
+			body=players,
+			style=PresetStyle.thin_compact
+		)
+		await ctx.send(f"```\n{output}\n```")
 
 def setup(bot):
 		bot.add_cog(Blackjack(bot))
