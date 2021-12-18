@@ -476,7 +476,7 @@ class Blackjack(commands.Cog):
 		)
 		await ctx.send(f"```\n{output}\n```")
 
-	@commands.command(aliases=["glb"]hidden=True)
+	@commands.command(aliases=["glb"], hidden=True)
 	async def globalleaderboard(self, ctx):
 		sortedPlayers = sorted(self.players.items(), key = lambda kv:(kv[1].money), reverse=True)
 		players = []
