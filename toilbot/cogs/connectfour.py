@@ -34,6 +34,7 @@ class Game():
 			0: (255, 0, 0), #red
 			1: (255, 255, 0) #yellow
 		}
+		self.gameImages = []
 
 	async def confirmGame(self):
 		self.confirmed = True
@@ -59,6 +60,7 @@ class Game():
 			for i in range(7):
 				draw.ellipse([((i*50)+5, (j*50)+5), (((i+1)*50)-5, ((j+1)*50)-5)], fill=self.color[self.board[i][j]])
 
+		self.gameImages.append(im)
 		await self.sendImage(im)
 
 	async def checkForWin(self, i, j):
@@ -182,19 +184,40 @@ class Game():
 				else:
 					draw.ellipse([((i*50)+5, (j*50)+5), (((i+1)*50)-5, ((j+1)*50)-5)], fill=self.color[self.board[i][j]])
 
+		self.gameImages.append(im)
 		await self.sendImageEnd(im)
 
 	async def winner(self, winningTiles):
 		await self.drawBoardWin(winningTiles)
 		await self.ctx.send(f"{self.players[self.currentP].mention} wins the game!")
+		await self.createGameGif()
 		global game
 		game = None
 
 	async def tie(self):
 		await self.drawBoardWin([]) #no winning tiles
 		await self.ctx.send("Its a tie! Nobody wins")
+		await self.createGameGif()
 		global game
 		game = None
+
+	async def createGameGif(self):
+		with io.BytesIO() as image_bin:
+			durations = []
+			i = 0
+			while i < len(self.gameImages):
+				if i < 8:
+					durations.append(500)
+				elif i == len(self.gameImages)-1:
+					durations.append(5000)
+				else:
+					durations.append(1000)
+				i += 1
+
+			gif = self.gameImages.pop(0)
+			gif.save(image_bin, format="GIF", save_all=True, append_images=self.gameImages, duration=durations, loop=0)
+			image_bin.seek(0)
+			await self.ctx.send(content="GIF", file=discord.File(fp=image_bin, filename="image.gif"))
 
 
 class ConnectFour(commands.Cog):
