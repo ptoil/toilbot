@@ -70,6 +70,7 @@ class Dealer():
 	def __init__(self):
 		self.score = 0
 		self.cards = []
+		self.softScore = ""
 
 	def addCard(self, card):
 		self.cards.append(card)
@@ -87,6 +88,13 @@ class Dealer():
 			if self.score > 21 and aceCount > 0:
 				aceCount -= 1
 				self.score -= 10
+
+		if aceCount > 0:
+			soft = self.score - (aceCount * 10)
+			self.softScore = f"{soft}/{self.score}"
+		else:
+			self.softScore = str(self.score)
+
 
 class Player(Dealer): #player is same as dealer but has money
 	def __init__(self, i):
@@ -147,7 +155,7 @@ class Game():
 		self.dealer = Dealer()
 		self.deck = Deck()
 		self.deck.shuffle()
-		
+
 	async def start(self):
 		self.player.removeCards()
 		if self.bet > self.player.money:
@@ -188,10 +196,10 @@ class Game():
 		self.dealer.addCard(self.deck.drawCard())
 
 	def dealBJ(self):
-		self.dealer.addCard(Card("Diamonds", 1))
-		self.dealer.addCard(Card("Diamonds", 10))
-		self.player.addCard(self.deck.drawCard())
-		self.player.addCard(self.deck.drawCard())
+		self.dealer.addCard(Card("Diamonds", 2))
+		self.dealer.addCard(Card("Diamonds", 2))
+		self.player.addCard(Card("Diamonds", 10))
+		self.player.addCard(Card("Diamonds", 8))
 
 	async def postDealerMsg(self):
 		self.dealerEmbed = discord.Embed(title="Dealer", description="Dealer is waiting for you to finish your turn")
@@ -203,7 +211,7 @@ class Game():
 	async def postPlayerMsg(self):
 		self.playerEmbed = discord.Embed(title=self.playerName, description="Would you like to hit or stay?")
 		self.playerEmbed.add_field(name="Card 1", value=self.player.cards[0], inline=True)
-		self.playerEmbed.add_field(name="Score",  value=self.player.score,    inline=True)
+		self.playerEmbed.add_field(name="Score",  value=self.player.softScore,    inline=True)
 		self.playerEmbed.add_field(name="Card 2", value=self.player.cards[1], inline=False)
 		self.hitStay = HitStay(self)
 		self.playerMsg = await self.ctx.message.reply(embed=self.playerEmbed, view=self.hitStay)
@@ -225,7 +233,7 @@ class Game():
 	async def postPlayerMsgLoseToBlackjack(self):
 		self.playerEmbed = discord.Embed(title=self.playerName, description="Dealer got a blackjack!", colour=discord.Colour.red())
 		self.playerEmbed.add_field(name="Card 1", value=self.player.cards[0], inline=True)
-		self.playerEmbed.add_field(name="Score",  value=self.player.score,    inline=True)
+		self.playerEmbed.add_field(name="Score",  value=self.player.softScore,    inline=True)
 		self.playerEmbed.add_field(name="Card 2", value=self.player.cards[1], inline=False)
 		self.playerMsg = await self.ctx.message.reply(embed=self.playerEmbed)
 		
@@ -233,7 +241,7 @@ class Game():
 		self.player.addCard(self.deck.drawCard())
 		self.playerCardCount += 1
 		self.playerEmbed.add_field(name=f"Card {self.playerCardCount}", value=self.player.cards[self.playerCardCount-1], inline="False")
-		self.playerEmbed.set_field_at(1, name="Score", value=self.player.score, inline="True")
+		self.playerEmbed.set_field_at(1, name="Score", value=self.player.softScore, inline="True")
 		if self.player.score > 21:
 			self.playerEmbed.description = "You busted!"
 			self.playerEmbed.colour = discord.Colour.red()
@@ -255,7 +263,7 @@ class Game():
 	async def dealerTurn(self):
 		self.dealerEmbed.description = "Dealer is taking their turn"
 		self.dealerEmbed.set_field_at(0, name="Card 1", value=self.dealer.cards[0], inline=True)
-		self.dealerEmbed.set_field_at(1, name="Score", value=self.dealer.score, inline=True)
+		self.dealerEmbed.set_field_at(1, name="Score", value=self.dealer.softScore, inline=True)
 		await self.dealerMsg.edit(embed=self.dealerEmbed)
 		await asyncio.sleep(1)
 		i = 2
@@ -264,7 +272,7 @@ class Game():
 				await asyncio.sleep(2)
 			self.dealer.addCard(self.deck.drawCard())
 			self.dealerEmbed.add_field(name=f"Card {i+1}", value=self.dealer.cards[i], inline=False)
-			self.dealerEmbed.set_field_at(1, name="Score", value=self.dealer.score, inline=True)
+			self.dealerEmbed.set_field_at(1, name="Score", value=self.dealer.softScore, inline=True)
 			await self.dealerMsg.edit(embed=self.dealerEmbed)
 			i += 1
 		await asyncio.sleep(1)
@@ -385,7 +393,7 @@ class Blackjack(commands.Cog):
 		else:
 			await ctx.send(f"{type(error)}: {error}")
 	
-	@commands.command(brief="Collect $10 every hour")
+	@commands.command(aliases=["fm"], brief="Collect $10 every hour")
 	async def freemoney(self, ctx):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
