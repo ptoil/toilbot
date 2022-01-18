@@ -9,8 +9,6 @@ from PIL import Image, ImageDraw
 
 ########## GLOBALS
 
-game = None
-
 emoji_first_place  = "🥇"
 emoji_second_place = "🥈"
 emoji_third_place  = "🥉"
@@ -22,11 +20,9 @@ emoji_red_x        = "❌"
 
 class Game():
 
-	def __init__(self, ctx, cf):
-		self.ctx = ctx
-		self.confirm = cf
-		self.confirmed = False
-		self.players = (ctx.message.author, ctx.message.mentions[0])
+	def __init__(self, thread, p1, p2):
+		self.thread = thread
+		self.players = (p1, p2)
 		self.currentP = 0
 		self.board = [[-1 for j in range(6)] for i in range(7)]
 		self.color= {
@@ -36,21 +32,20 @@ class Game():
 		}
 		self.gameImages = []
 
-	async def confirmGame(self):
-		self.confirmed = True
+	async def startGame(self):
 		await self.drawBoard()
 
 	async def sendImage(self, image):
 		with io.BytesIO() as image_bin:
 			image.save(image_bin, "PNG")
 			image_bin.seek(0)
-			await self.ctx.send(content=f"{self.players[self.currentP].mention}'s turn", file=discord.File(fp=image_bin, filename="image.png"))
+			await self.thread.send(content=f"{self.players[self.currentP].mention}'s turn", file=discord.File(fp=image_bin, filename="image.png"))
 
 	async def sendImageEnd(self, image):
 		with io.BytesIO() as image_bin:
 			image.save(image_bin, "PNG")
 			image_bin.seek(0)
-			await self.ctx.send(file=discord.File(fp=image_bin, filename="image.png"))
+			await self.thread.send(file=discord.File(fp=image_bin, filename="image.png"))
 
 	async def drawBoard(self):
 		im = Image.new("RGBA", (350, 300), (0, 0, 0, 255))
@@ -64,6 +59,8 @@ class Game():
 		await self.sendImage(im)
 
 	async def checkForWin(self, i, j):
+		win = False
+		allWinningTiles = []
 		winningTiles = [(i, j)]
 		for x in range(1, 4): #left
 			if i - x < 0 or self.board[i - x][j] == -1:
@@ -80,8 +77,8 @@ class Game():
 			else:
 				break
 		if len(winningTiles) >= 4:
-			await self.winner(winningTiles)
-			return True
+			allWinningTiles.extend(winningTiles)
+			win = True
 
 		winningTiles = [(i, j)]
 		for x in range(1, 4): #up
@@ -99,8 +96,8 @@ class Game():
 			else:
 				break
 		if len(winningTiles) >= 4:
-			await self.winner(winningTiles)
-			return True
+			allWinningTiles.extend(winningTiles)
+			win = True
 
 		winningTiles = [(i, j)]
 		for x in range(1, 4): #TL
@@ -118,8 +115,8 @@ class Game():
 			else:
 				break
 		if len(winningTiles) >= 4:
-			await self.winner(winningTiles)
-			return True
+			allWinningTiles.extend(winningTiles)
+			win = True
 
 		winningTiles = [(i, j)]
 		for x in range(1, 4): #BL
@@ -137,10 +134,14 @@ class Game():
 			else:
 				break
 		if len(winningTiles) >= 4:
-			await self.winner(winningTiles)
-			return True
+			allWinningTiles.extend(winningTiles)
+			win = True
 
-		return False #default if no win found
+		if win:
+			await self.winner(allWinningTiles)
+			return True
+		else:
+			return False
 
 	async def checkForTie(self):
 		if self.board[0][0] != -1 and self.board[1][0] != -1 and self.board[2][0] != -1 and self.board[3][0] != -1 and self.board[4][0] != -1 and self.board[5][0] != -1 and self.board[6][0] != -1:
@@ -171,7 +172,7 @@ class Game():
 					return #so "column is full" doesnt print on a tie
 
 		if j == 0:
-			await self.ctx.send("That column is full, choose another.")
+			await self.thread.send("That column is full, choose another.")
 
 	async def drawBoardWin(self, winningTiles):
 		im = Image.new("RGBA", (350, 300), (0, 0, 0, 255))
@@ -189,17 +190,19 @@ class Game():
 
 	async def winner(self, winningTiles):
 		await self.drawBoardWin(winningTiles)
-		await self.ctx.send(f"{self.players[self.currentP].mention} wins the game!")
+		await self.thread.send(f"{self.players[self.currentP].mention} wins the game!")
 		await self.createGameGif()
-		global game
-		game = None
+		await self.thread.send("This thread will auto archive in 5 minutes")
+		await asyncio.sleep(300)
+		self.thread = await self.thread.archive()
 
 	async def tie(self):
 		await self.drawBoardWin([]) #no winning tiles
-		await self.ctx.send("Its a tie! Nobody wins")
+		await self.thread.send("Its a tie! Nobody wins")
 		await self.createGameGif()
-		global game
-		game = None
+		await self.thread.send("This thread will auto archive in 5 minutes")
+		await asyncio.sleep(300)
+		self.thread = await self.thread.archive()
 
 	async def createGameGif(self):
 		with io.BytesIO() as image_bin:
@@ -217,7 +220,14 @@ class Game():
 			gif = self.gameImages.pop(0)
 			gif.save(image_bin, format="GIF", save_all=True, append_images=self.gameImages, duration=durations, loop=0)
 			image_bin.seek(0)
-			await self.ctx.send(content="GIF", file=discord.File(fp=image_bin, filename="image.gif"))
+			await self.thread.send(content="GIF", file=discord.File(fp=image_bin, filename="image.gif"))
+
+class Challenge():
+
+	def __init__(self, msg, p1, p2):
+		self.message = msg
+		self.player1 = p1
+		self.player2 = p2
 
 
 class ConnectFour(commands.Cog):
@@ -225,12 +235,15 @@ class ConnectFour(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.games = {}
+		self.challenge = None
 
 	@commands.command(aliases=["c4"])
 	async def connectfour(self, ctx):
-		global game
-		if game is not None:
-			await ctx.send("There is already a game in progress.")
+		self.cleanGames()
+		if isinstance(ctx.channel, discord.Thread):
+			await ctx.send("You can't start a challenge in a thread.")
+		elif self.challenge is not None:
+			await ctx.send("There is already a challenge in progress. Wait for the current challenge to time out or be answered.")
 		elif len(ctx.message.mentions) < 1:
 			await ctx.send("Please mention the user you would like to play against.")
 		elif len(ctx.message.mentions) > 1:
@@ -239,34 +252,38 @@ class ConnectFour(commands.Cog):
 			await ctx.send("You can't play against yourself.")
 		else:
 			confirm = await ctx.send(f"{ctx.message.mentions[0].mention} {ctx.message.author.display_name} wants to play Connect Four. Do you accept the challenge?")
+			self.challenge = Challenge(confirm, ctx.author, ctx.message.mentions[0])
 			await confirm.add_reaction(emoji_check_mark)
 			await confirm.add_reaction(emoji_red_x)
-			game = Game(ctx, confirm)
+
+			challengeHash = hash(self.challenge) #prevent previous challenge from causing early timeout on current challenge if they happen within a minute of each other
 			await asyncio.sleep(60)
 			#wait for on_reaction_add to confirm
 
-			if game is not None:
-				if game.confirmed is False:
-					await ctx.send("Challenge timed out.")
-					game = None
-				#else game is playing
+			if self.challenge is not None and hash(self.challenge) == challengeHash:
+				self.challenge = None
+				await ctx.send("Challenge timed out.")
+			#else game is playing
 
 	@commands.Cog.listener()
 	async def on_reaction_add(self, reaction, user):
-		global game
-		if game is not None:
-			if reaction.message == game.confirm:
-				if user == game.players[1] and reaction.emoji == emoji_check_mark:
-					await game.confirmGame()
-				elif user == game.players[1] and reaction.emoji == emoji_red_x:
-					await game.ctx.send(f"{game.players[0].mention} {game.players[1].display_name} has declined.")
-					game = None
+		if self.challenge is not None:
+			if reaction.message == self.challenge.message:
+				if user == self.challenge.player2 and reaction.emoji == emoji_check_mark:
+					thread = await self.challenge.message.create_thread(name=f"{self.challenge.player1.display_name} vs {self.challenge.player2.display_name}")
+					game = Game(thread, self.challenge.player1, self.challenge.player2)
+					self.games.update({thread.id : game})
+					await game.startGame()
+					self.challenge = None
+				elif user == self.challenge.player2 and reaction.emoji == emoji_red_x:
+					await reaction.message.channel.send(f"{self.challenge.player1.mention} {self.challenge.player2.display_name} has declined.")
+					self.challenge = None
 
-	@commands.command(aliases=["p"])
+	@commands.command(aliases=["p"], brief="You can use .p1 through .p7 to play")
 	async def play(self, ctx, num):
-		global game
-		if game is not None:
-			if ctx.message.author == game.players[game.currentP] and game.confirmed:
+		if ctx.channel.id in self.games.keys():
+			game = self.games[ctx.channel.id]
+			if ctx.message.author == game.players[game.currentP]:
 				try:
 					col = int(num)
 					if col < 1 or col > 7:
@@ -297,6 +314,16 @@ class ConnectFour(commands.Cog):
 	@commands.command(hidden=True)
 	async def p7(self, ctx):
 		await self.play(ctx, 7)
+
+	def cleanGames(self): #garbage collection, removes games from self.games if their thread is archived
+		delThreads = []
+		for game in self.games.values():
+			print(f"name: {game.thread.name}, id: {game.thread.id}, archived: {game.thread.archived}")
+			if game.thread.archived:
+				delThreads.append(game.thread.id)
+		for threadID in delThreads:
+			print(threadID)
+			del self.games[threadID]
 
 def setup(bot):
 		bot.add_cog(ConnectFour(bot))
