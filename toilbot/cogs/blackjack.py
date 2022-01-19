@@ -8,7 +8,8 @@ import pickle
 import json
 import time
 import re
-from table2ascii import table2ascii as t2a, PresetStyle
+import decimal
+from table2ascii import table2ascii as t2a, PresetStyle, Alignment
 
 class Card():
 
@@ -137,7 +138,10 @@ class HitStay(discord.ui.View):
 			self.stop()
 
 def formatMoney(money):
-	return "${:,.2f}".format(money)
+	with decimal.localcontext() as ctx:
+		d = decimal.Decimal(money)
+		ctx.rounding = decimal.ROUND_DOWN
+		return "${:,.2f}".format(round(d, 2))
 
 class Game():
 
@@ -449,7 +453,6 @@ class Blackjack(commands.Cog):
 		if member.id not in self.players.keys():
 			self.players.update({member.id : Player(member.id)})
 
-#		money = "${:,.2f}".format(self.players[member.id].money)
 		if member == ctx.author:
 			await ctx.message.reply(f"You have {formatMoney(self.players[member.id].money)}")
 		else:
@@ -474,13 +477,14 @@ class Blackjack(commands.Cog):
 		for player in sortedPlayers:
 				user = ctx.guild.get_member(player[0])
 				if user is not None:
-					guildPlayers.append([user.display_name, "${:,.2f}".format(self.players[user.id].money)])
+					guildPlayers.append([user.display_name, formatMoney(self.players[user.id].money)])
 				#else player is from another server, so dont print
 
 		output = t2a(
 			header=["Player", "Money"],
 			body=guildPlayers,
-			style=PresetStyle.thin_compact
+			style=PresetStyle.thin_compact,
+			alignments=[Alignment.LEFT, Alignment.RIGHT]
 		)
 		await ctx.send(f"```\n{output}\n```")
 
@@ -490,12 +494,13 @@ class Blackjack(commands.Cog):
 		players = []
 		for player in sortedPlayers:
 				user = self.bot.get_user(player[0])
-				players.append([user.name, "${:,.2f}".format(self.players[user.id].money)])
+				players.append([user.name, formatMoney(self.players[user.id].money)])
 
 		output = t2a(
 			header=["Player", "Money"],
 			body=players,
 			style=PresetStyle.thin_compact
+			alignments=[Alignment.LEFT, Alignment.RIGHT]
 		)
 		await ctx.send(f"```\n{output}\n```")
 
