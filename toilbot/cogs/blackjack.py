@@ -345,6 +345,8 @@ class Blackjack(commands.Cog):
 			if bet != roundedBet and not allin:
 				await ctx.message.reply(f"Bet has been rounded to {formatMoney(self.players[ctx.author.id].money)}")
 			elif allin:
+				if roundedBet > bet: #cant go allin with more money than you have
+					roundedBet = bet
 				await ctx.message.reply(f"You've gone all in with {formatMoney(self.players[ctx.author.id].money)}")
 			game = Game(ctx, self.players[ctx.author.id], roundedBet)
 			if not await game.start():
@@ -499,7 +501,7 @@ class Blackjack(commands.Cog):
 		output = t2a(
 			header=["Player", "Money"],
 			body=players,
-			style=PresetStyle.thin_compact
+			style=PresetStyle.thin_compact,
 			alignments=[Alignment.LEFT, Alignment.RIGHT]
 		)
 		await ctx.send(f"```\n{output}\n```")
