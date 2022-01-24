@@ -140,7 +140,7 @@ class HitStay(discord.ui.View):
 def formatMoney(money):
 	with decimal.localcontext() as ctx:
 		d = decimal.Decimal(money)
-		ctx.rounding = decimal.ROUND_DOWN
+		ctx.rounding = decimal.ROUND_HALF_UP
 		return "${:,.2f}".format(round(d, 2))
 
 class Game():
