@@ -229,7 +229,6 @@ class Challenge():
 		self.player1 = p1
 		self.player2 = p2
 
-
 class ConnectFour(commands.Cog):
 
 	def __init__(self, bot):
@@ -251,7 +250,7 @@ class ConnectFour(commands.Cog):
 		elif ctx.message.mentions[0] == ctx.author:
 			await ctx.send("You can't play against yourself.")
 		else:
-			confirm = await ctx.send(f"{ctx.message.mentions[0].mention} {ctx.message.author.display_name} wants to play Connect Four. Do you accept the challenge?")
+			confirm = await ctx.send(f"{ctx.message.mentions[0].mention} {ctx.message.author.display_name} wants to play Connect Four. Do you accept their challenge?")
 			self.challenge = Challenge(confirm, ctx.author, ctx.message.mentions[0])
 			await confirm.add_reaction(emoji_check_mark)
 			await confirm.add_reaction(emoji_red_x)
@@ -270,7 +269,7 @@ class ConnectFour(commands.Cog):
 		if self.challenge is not None:
 			if reaction.message == self.challenge.message:
 				if user == self.challenge.player2 and reaction.emoji == emoji_check_mark:
-					thread = await self.challenge.message.create_thread(name=f"{self.challenge.player1.display_name} vs {self.challenge.player2.display_name}")
+					thread = await self.challenge.message.create_thread(name=f"Connect Four: {self.challenge.player1.display_name} vs {self.challenge.player2.display_name}")
 					game = Game(thread, self.challenge.player1, self.challenge.player2)
 					self.games.update({thread.id : game})
 					await game.startGame()
@@ -326,4 +325,4 @@ class ConnectFour(commands.Cog):
 			del self.games[threadID]
 
 def setup(bot):
-		bot.add_cog(ConnectFour(bot))
+	bot.add_cog(ConnectFour(bot))
