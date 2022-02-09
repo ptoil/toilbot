@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from .exceptions import *
 import asyncio
 import io
 import random
@@ -314,19 +315,20 @@ class Blackjack(commands.Cog):
 		self.players = {}
 
 	@commands.Cog.listener()
-	async def on_ready(self):
+	async def on_connect(self):
 		try:
 			self.players = pickle.load(open("saves/players.pickle", "rb"))
 #			self.players = json.load(open("saves/players.json", "rb"))
 		except FileNotFoundError:
-			json.dump(self.players, open("saves/players.json", "w"))
-#			pickle.dump(self.players, open("saves/players.pickle", "wb"))
+#			json.dump(self.players, open("saves/players.json", "w"))
+			pickle.dump(self.players, open("saves/players.pickle", "wb"))
 
 	def savePlayers(self):
 		pickle.dump(self.players, open("saves/players.pickle", "wb"))
 #		json.dump(self.players, open("saves/players.json", "w"))
 
 	@commands.command(aliases=["bj"])
+	@ChannelCheck.in_toilbot_channel()
 	async def blackjack(self, ctx, *, bet):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
@@ -360,9 +362,10 @@ class Blackjack(commands.Cog):
 		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.message.reply("Please enter a bet amount. For example `.blackjack 5`")
 		else:
-			await ctx.send(f"{type(error)}: {error}")
+			pass
 		
 	@commands.command(brief="Give your money to someone else")
+	@ChannelCheck.in_toilbot_channel()
 	async def donate(self, ctx, member: discord.Member, *, amount):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
@@ -397,9 +400,10 @@ class Blackjack(commands.Cog):
 		elif isinstance(error, commands.MemberNotFound):
 			await ctx.message.reply("Please ping the user you want to donate to. For example `.donate @toilbot 5`")
 		else:
-			await ctx.send(f"{type(error)}: {error}")
+			pass
 	
 	@commands.command(aliases=["fm"], brief="Collect $10 every hour")
+	@ChannelCheck.in_toilbot_channel()
 	async def freemoney(self, ctx):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
@@ -449,6 +453,7 @@ class Blackjack(commands.Cog):
 		self.savePlayers()
 
 	@commands.command()
+	@ChannelCheck.in_toilbot_channel()
 	async def money(self, ctx, *, member: discord.Member=None):
 		if member is None:
 			member = ctx.author
@@ -466,13 +471,14 @@ class Blackjack(commands.Cog):
 	@money.error
 	async def give_error(self, ctx, error):
 		if isinstance(error, commands.NotOwner):
-			await ctx.send("only ptoil can use that command FUNgineer")
+			await ctx.send("only ptoil can use that command :FUNgineer:")
 		elif isinstance(error, commands.MemberNotFound):
 			await ctx.send("That user was not found")
 		else:
-			await ctx.send(f"{type(error)}: {error}")
+			pass
 
 	@commands.command(aliases=["lb"])
+	@ChannelCheck.in_toilbot_channel()
 	async def leaderboard(self, ctx):
 		sortedPlayers = sorted(self.players.items(), key = lambda kv:(kv[1].money), reverse=True)
 		guildPlayers = []
@@ -491,6 +497,7 @@ class Blackjack(commands.Cog):
 		await ctx.send(f"```\n{output}\n```")
 
 	@commands.command(aliases=["glb"], hidden=True)
+	@ChannelCheck.in_toilbot_channel()
 	async def globalleaderboard(self, ctx):
 		sortedPlayers = sorted(self.players.items(), key = lambda kv:(kv[1].money), reverse=True)
 		players = []
@@ -507,4 +514,4 @@ class Blackjack(commands.Cog):
 		await ctx.send(f"```\n{output}\n```")
 
 def setup(bot):
-		bot.add_cog(Blackjack(bot))
+	bot.add_cog(Blackjack(bot))

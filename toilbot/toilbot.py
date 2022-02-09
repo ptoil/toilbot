@@ -3,6 +3,9 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 
+import traceback
+from cogs.exceptions import *
+
 import random
 import asyncio
 import time
@@ -32,10 +35,26 @@ bot = commands.Bot(command_prefix='.', case_insensitive=True, intents=intents)
 bot.load_extension("cogs.mixtea")
 bot.load_extension("cogs.connectfour")
 bot.load_extension("cogs.blackjack")
+bot.load_extension("cogs.roles")
+
+@bot.event
+async def on_connect():
+	print(f'{bot.user} has connected to Discord')
 
 @bot.event
 async def on_ready():
-	print(f'{bot.user} has connected to Discord!')
+	print(f'{bot.user} is ready!')
+
+
+@bot.event
+async def on_command_error(ctx, error):
+	if isinstance(error, NotInToilbotChannel):
+		print(f"NotInToilbotChannel: {ctx.author.name}: {ctx.message.content}")
+	else:
+		print('Ignoring exception in command {}:'.format(ctx.command))
+		print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
+		await ctx.send(f"<@205908835435544577> error pepew")
+
 
 """
 @bot.event
@@ -48,6 +67,7 @@ async def on_message(message):
 
 
 @bot.command(aliases=["moontea"])
+@ChannelCheck.in_toilbot_channel()
 async def moon(ctx):
 	counterMessage = None
 	counter = 0

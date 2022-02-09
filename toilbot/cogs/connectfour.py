@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from .exceptions import *
 import random
 import asyncio
 import io
@@ -238,6 +239,7 @@ class ConnectFour(commands.Cog):
 		self.challenge = None
 
 	@commands.command(aliases=["c4"])
+	@ChannelCheck.in_toilbot_channel()
 	async def connectfour(self, ctx):
 		self.cleanGames()
 		if isinstance(ctx.channel, discord.Thread):
@@ -250,6 +252,8 @@ class ConnectFour(commands.Cog):
 			await ctx.send("You can only play against one user at a time.")
 		elif ctx.message.mentions[0] == ctx.author:
 			await ctx.send("You can't play against yourself.")
+		elif ctx.message.mentions[0] == self.bot.user:
+			await ctx.send("I don't want to play with you.")
 		else:
 			confirm = await ctx.send(f"{ctx.message.mentions[0].mention} {ctx.message.author.display_name} wants to play Connect Four. Do you accept the challenge?")
 			self.challenge = Challenge(confirm, ctx.author, ctx.message.mentions[0])
@@ -318,7 +322,6 @@ class ConnectFour(commands.Cog):
 	def cleanGames(self): #garbage collection, removes games from self.games if their thread is archived
 		delThreads = []
 		for game in self.games.values():
-			print(f"name: {game.thread.name}, id: {game.thread.id}, archived: {game.thread.archived}")
 			if game.thread.archived:
 				delThreads.append(game.thread.id)
 		for threadID in delThreads:
@@ -326,4 +329,4 @@ class ConnectFour(commands.Cog):
 			del self.games[threadID]
 
 def setup(bot):
-		bot.add_cog(ConnectFour(bot))
+	bot.add_cog(ConnectFour(bot))

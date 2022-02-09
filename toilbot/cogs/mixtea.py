@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from .exceptions import *
 import random
 import asyncio
 
@@ -88,7 +89,7 @@ class Tea:
 				elif i == 2:
 					winOutput += ":third_place: "
 				else:
-					winOutput += ":medal "
+					winOutput += ":medal: "
 				if score[1].score > 1:
 					winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points "
 				elif score[1].score == 1:
@@ -358,6 +359,7 @@ class MixTea(commands.Cog):
 #		await self.bot.process_commands(message)
 
 	@commands.command()
+	@ChannelCheck.in_toilbot_channel()
 	async def longtea(self, ctx):
 		global teaGame
 		if teaGame is not None:
@@ -368,6 +370,7 @@ class MixTea(commands.Cog):
 		teaGame = None
 
 	@commands.command()
+	@ChannelCheck.in_toilbot_channel()
 	async def quicktea(self, ctx):
 		global teaGame
 		if teaGame is not None:
@@ -378,6 +381,7 @@ class MixTea(commands.Cog):
 		teaGame = None
 
 	@commands.command()
+	@ChannelCheck.in_toilbot_channel()
 	async def manytea(self, ctx):
 		global teaGame
 		if teaGame is not None:
@@ -388,6 +392,7 @@ class MixTea(commands.Cog):
 		teaGame = None
 
 	@commands.command()
+	@ChannelCheck.in_toilbot_channel()
 	async def mixtea(self, ctx):
 		global teaExecute
 		global teaGame
@@ -402,6 +407,7 @@ class MixTea(commands.Cog):
 
 
 	@commands.command()
+	@ChannelCheck.in_toilbot_channel()
 	async def scores(self, ctx):
 		global teaGame
 		if teaGame is None:
@@ -425,6 +431,7 @@ class MixTea(commands.Cog):
 #		await ctx.send(teaGame.scores)
 
 	@commands.command()
+	@ChannelCheck.in_toilbot_channel()
 	async def exitgame(self, ctx):
 		global teaGame
 		global teaExecute
@@ -440,4 +447,4 @@ class MixTea(commands.Cog):
 		teaExecute = None
 
 def setup(bot):
-		bot.add_cog(MixTea(bot))
+	bot.add_cog(MixTea(bot))
