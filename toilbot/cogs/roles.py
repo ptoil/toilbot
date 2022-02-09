@@ -34,7 +34,7 @@ class Roles(commands.Cog):
 				await ctx.send("Hex value too high! Enter a hex value between #000000 and #FFFFFF")
 				return
 		except ValueError:
-			await ctx.send("Please enter a hex value for your color. For example `.setcolor rolename #ABC123`")
+			await ctx.send("Please enter a hex value for your color. For example `.setcolor #ABC123 role name`")
 			return
 
 		for role in ctx.author.roles:
