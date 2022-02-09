@@ -48,7 +48,9 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error):
-	if isinstance(error, NotInToilbotChannel):
+	if isinstance(error, discord.ext.commands.errors.CommandNotFound):
+		pass
+	elif isinstance(error, NotInToilbotChannel):
 		print(f"NotInToilbotChannel: {ctx.author.name}: {ctx.message.content}")
 	else:
 		print('Ignoring exception in command {}:'.format(ctx.command))
