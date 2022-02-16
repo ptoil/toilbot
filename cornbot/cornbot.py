@@ -127,7 +127,7 @@ async def noplacelikehome(ctx):
 	cornStorm = 0
 
 @bot.command()
-async def say(ctx, botName: str, *strInput: str):
+async def csay(ctx, botName: str, *strInput: str):
 	if ctx.author.id == BOT_OWNER:
 		if (botName == "cornbot"):
 			await ctx.send(" ".join(strInput))
@@ -227,7 +227,7 @@ async def hoopla(ctx):
 			await ctx.send("@everyone STFU!!!")
 
 @bot.command(brief="Only usable by ptoil", description="You really have no idea what this does? It shuts down the bot duh\nThe command can only be used by ptoil")
-async def shutdown(ctx, botName: str):
+async def cshutdown(ctx, botName: str):
 	if ctx.author.id == BOT_OWNER:
 		if botName == "cornbot":
 			await ctx.send("Shutting down")

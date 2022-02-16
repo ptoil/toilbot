@@ -48,14 +48,16 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error):
-	if isinstance(error, discord.ext.commands.errors.CommandNotFound):
+	if isinstance(error, commands.errors.CommandNotFound):
 		pass
+	elif isinstance(error, commands.errors.NotOwner):
+		await ctx.send("Only ptoil has access to that command <:FUNgineer:918637730542522408>")
 	elif isinstance(error, NotInToilbotChannel):
 		print(f"NotInToilbotChannel: {ctx.author.name}: {ctx.message.content}")
 	else:
 		print('Ignoring exception in command {}:'.format(ctx.command))
 		print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
-		await ctx.send(f"<@205908835435544577> error pepew")
+		await ctx.send(f"<@205908835435544577> pepew\n{type(error)}: {error}")
 
 
 """
@@ -85,22 +87,16 @@ async def moon(ctx):
 			return;
 
 @bot.command()
-async def say(ctx, botName: str, *strInput: str):
-	if ctx.author.id == BOT_OWNER:
-		if (botName == "toilbot"):
-			await ctx.send(" ".join(strInput))
-			await ctx.message.delete()
-	else:
-		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
+@commands.is_owner()
+async def say(ctx, *strInput: str):
+	await ctx.send(" ".join(strInput))
+	await ctx.message.delete()
 
 @bot.command()
-async def shutdown(ctx, botName: str):
-	if ctx.author.id == BOT_OWNER:
-		if botName == "toilbot":
-			await ctx.send("Shutting down")
-			print("Bot was shutdown")
-			await bot.close()
-	else:
-		await ctx.send("You don't have permission to use that command.")
+@commands.is_owner()
+async def shutdown(ctx):
+	await ctx.send("Shutting down")
+	print("Bot was shutdown")
+	await bot.close()
 
 bot.run(TOKEN)
