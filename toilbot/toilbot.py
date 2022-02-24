@@ -36,6 +36,7 @@ bot.load_extension("cogs.mixtea")
 bot.load_extension("cogs.connectfour")
 bot.load_extension("cogs.blackjack")
 bot.load_extension("cogs.roles")
+bot.load_extension("cogs.cobe")
 
 @bot.event
 async def on_connect():
