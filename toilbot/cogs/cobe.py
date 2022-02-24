@@ -5,13 +5,14 @@ from .exceptions import *
 
 from cobe.brain import Brain
 import os
+import time
 
 class Cobe(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
 		self.brains = {}
-#		self.b = Brain("cobe.brain")
+		self.cooldown = 0
 
 	@commands.Cog.listener()
 	async def on_ready(self):
@@ -30,9 +31,9 @@ class Cobe(commands.Cog):
 #		print(f"\"{msgWithoutPing}\" learned")
 		self.brains[message.guild.id].learn(msgWithoutPing)
 
-		if len(message.mentions) > 0:
-			if self.bot.user in message.mentions:
-				await message.channel.send(self.brains[message.guild.id].reply(msgWithoutPing))
+		if self.bot.user in message.mentions and self.cooldown < time.time():
+			self.cooldown = time.time() + 5
+			await message.channel.send(self.brains[message.guild.id].reply(msgWithoutPing))
 
 	@commands.command()
 	@commands.is_owner()
@@ -40,11 +41,11 @@ class Cobe(commands.Cog):
 		c = 0
 		learned = 0
 		currentChannel = ""
-		prog = await ctx.send(f"Currently reading {currentChannel}. {c} messages read")
+		prog = await ctx.send(f"Currently reading {currentChannel}. {c} messages read, {learned} messages learned.")
 		for channel in ctx.guild.channels:
 			if isinstance(channel, discord.TextChannel):
 				currentChannel = channel.name
-				await prog.edit(f"Currently reading {currentChannel}. {c} messages read")
+				await prog.edit(f"Currently reading {currentChannel}. {c} messages read, {learned} messages learned.")
 				async for message in channel.history(limit=None):
 					if message.author.id != self.bot.user.id and message.content != "" and message.content[0] != '.' and message.content[0] != ',':
 						msgWithoutPing = message.content.replace(f"<@!{self.bot.user.id}>", "")
@@ -55,7 +56,7 @@ class Cobe(commands.Cog):
 						pass
 					c += 1
 					if c % 500 == 0:
-						await prog.edit(f"Currently reading {currentChannel}. {c} messages read")
+						await prog.edit(f"Currently reading {currentChannel}. {c} messages read, {learned} messages learned.")
 		await ctx.send(f"Done! {c} total messages read. {learned} messages learned.")
 
 def setup(bot):
