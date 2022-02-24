@@ -33,7 +33,10 @@ class Cobe(commands.Cog):
 
 		if self.bot.user in message.mentions and self.cooldown < time.time():
 			self.cooldown = time.time() + 5
-			await message.channel.send(self.brains[message.guild.id].reply(msgWithoutPing))
+			reply = self.brains[message.guild.id].reply(msgWithoutPing)
+			await message.channel.send(reply)
+			reply = reply[0:1999]
+			await message.channel.send(reply)
 
 	@commands.command()
 	@commands.is_owner()
