@@ -31,10 +31,11 @@ class Cobe(commands.Cog):
 #		print(f"\"{msgWithoutPing}\" learned")
 		self.brains[message.guild.id].learn(msgWithoutPing)
 
-		if self.bot.user in message.mentions and self.cooldown < time.time():
+		ctx = await self.bot.get_context(message)
+		print(await ChannelCheck.in_toilbot_channel().predicate(ctx))
+		if ChannelCheck.in_toilbot_channel() and self.bot.user in message.mentions and self.cooldown < time.time():
 			self.cooldown = time.time() + 5
 			reply = self.brains[message.guild.id].reply(msgWithoutPing)
-			await message.channel.send(reply)
 			reply = reply[0:1999]
 			await message.channel.send(reply)
 
