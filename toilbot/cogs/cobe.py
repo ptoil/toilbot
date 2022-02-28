@@ -32,12 +32,14 @@ class Cobe(commands.Cog):
 		self.brains[message.guild.id].learn(msgWithoutPing)
 
 		ctx = await self.bot.get_context(message)
-		print(await ChannelCheck.in_toilbot_channel().predicate(ctx))
-		if ChannelCheck.in_toilbot_channel() and self.bot.user in message.mentions and self.cooldown < time.time():
-			self.cooldown = time.time() + 5
-			reply = self.brains[message.guild.id].reply(msgWithoutPing)
-			reply = reply[0:1999]
-			await message.channel.send(reply)
+		try:
+			if await ChannelCheck.in_toilbot_channel().predicate(ctx) and self.bot.user in message.mentions and self.cooldown < time.time():
+				self.cooldown = time.time() + 5
+				reply = self.brains[message.guild.id].reply(msgWithoutPing)
+				reply = reply[0:1999]
+				await message.channel.send(reply)
+		except: #cogs.exceptions.NotInToilbotChannel
+			pass
 
 	@commands.command()
 	@commands.is_owner()
