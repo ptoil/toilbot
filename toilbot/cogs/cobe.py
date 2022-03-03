@@ -48,22 +48,27 @@ class Cobe(commands.Cog):
 		learned = 0
 		currentChannel = ""
 		prog = await ctx.send(f"Currently reading {currentChannel}. {c} messages read, {learned} messages learned.")
+		print(f"Loading brain in {ctx.guild.name} ({ctx.guild.id})")
 		for channel in ctx.guild.channels:
 			if isinstance(channel, discord.TextChannel):
 				currentChannel = channel.name
 				await prog.edit(f"Currently reading {currentChannel}. {c} messages read, {learned} messages learned.")
-				async for message in channel.history(limit=None):
-					if message.author.id != self.bot.user.id and message.content != "" and message.content[0] != '.' and message.content[0] != ',':
-						msgWithoutPing = message.content.replace(f"<@!{self.bot.user.id}>", "")
-						self.brains[ctx.guild.id].learn(msgWithoutPing)
-						learned += 1
-					else:
-#						print(f"\"{msg.content}\" skipped")
-						pass
-					c += 1
-					if c % 500 == 0:
-						await prog.edit(f"Currently reading {currentChannel}. {c} messages read, {learned} messages learned.")
+				try:
+					async for message in channel.history(limit=None):
+						if message.author.id != self.bot.user.id and message.content != "" and message.content[0] != '.' and message.content[0] != ',':
+							msgWithoutPing = message.content.replace(f"<@!{self.bot.user.id}>", "")
+							self.brains[ctx.guild.id].learn(msgWithoutPing)
+							learned += 1
+						else:
+#							print(f"\"{msg.content}\" skipped")
+							pass
+						c += 1
+						if c % 500 == 0:
+							await prog.edit(f"Currently reading {currentChannel}. {c} messages read, {learned} messages learned.")
+				except discord.Forbidden:
+					print(f"skipped: https://discord.com/channels/{message.guild.id}/{message.channel.id}/{message.id}")
 		await ctx.send(f"Done! {c} total messages read. {learned} messages learned.")
+		print(f"Done! {c} total messages read. {learned} messages learned. {ctx.guild.name} ({ctx.guild.id})")
 
 def setup(bot):
 	bot.add_cog(Cobe(bot))

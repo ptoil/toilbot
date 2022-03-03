@@ -31,13 +31,13 @@ class Roles(commands.Cog):
 				name = "#" + color
 			hexNum = int(color, 16)
 			if hexNum > 0xffffff:
-				await ctx.send("Hex value too high! Enter a hex value between #000000 and #FFFFFF")
+				await ctx.message.reply("Hex value too high! Enter a hex value between #000000 and #FFFFFF")
 				return
 			if len(name) > 100:
-				await ctx.send("Role name too long! Must be 100 characters or fewer in length.")
+				await ctx.message.reply("Role name too long! Must be 100 characters or fewer in length.")
 				return
 		except ValueError:
-			await ctx.send("Please enter a hex value for your color. For example `.setcolor #ABC123 role name`")
+			await ctx.message.reply("Please enter a hex value for your color. For example `.setcolor #ABC123 role name`")
 			return
 
 		for role in ctx.author.roles:
@@ -48,11 +48,19 @@ class Roles(commands.Cog):
 		newRole = await ctx.guild.create_role(name=name, color=discord.Color(hexNum))
 		botMember = ctx.guild.get_member(self.bot.user.id)
 		botRole = botMember.roles[-1] #will return the bots top role, which should be the integration role if no other higher roles were added
-		await newRole.edit(position=(botRole.position-1)) #move the color role to below the bot role (should be higher than any other custom role and therefore is the displayed color)
+		botRoleIndex = ctx.guild.roles.index(botRole)
+		await ctx.guild.edit_role_positions(positions={newRole : botRoleIndex-1}) #move the color role to below the bot role (should be higher than any other custom role and therefore is the displayed color)
 		await ctx.author.add_roles(newRole)
-		await ctx.send("role added")
+		await ctx.message.reply("Role added")
 		self.roles.append(newRole.id)
 		self.saveRoles()
+
+	@setcolor.error
+	async def setcolor_error(self, ctx, error):
+		if isinstance(error, commands.MissingRequiredArgument):
+			await ctx.message.reply("Please enter a hex value for your color. For example `.setcolor #ABC123 role name`")
+		else:
+			pass
 
 	@commands.command()
 	@ChannelCheck.in_toilbot_channel()
@@ -65,34 +73,13 @@ class Roles(commands.Cog):
 				await ctx.send("Your role has been removed")
 				return
 		await ctx.send("You don't have a role to remove")
-"""
-	@commands.command()
-	async def pr(self, ctx):
-		await ctx.send(self.roles)
 
+"""
 	@commands.command()
 	async def roletest(self, ctx):
 		output = ""
 		for role in ctx.guild.roles:
 			output += f"{role.name}: {role.position}\n"
-		await ctx.send(output)
-
-	@commands.command()
-	async def roletest2(self, ctx):
-		output = ""
-		botMember = ctx.guild.get_member(self.bot.user.id)
-		roles = botMember.roles
-#		for i in range(len(roles)):
-#			output += f"{i}: {roles[i].name}: {roles[i].position}\n"
-		await ctx.send(roles[-1])
-
-	@commands.command()
-	async def roletest3(self, ctx):
-		output = ""
-		botMember = ctx.guild.get_member(self.bot.user.id)
-		roles = ctx.author.roles
-		for i in range(len(roles)):
-			output += f"{i}: {roles[i].name}: {roles[i].is_bot_managed()}\n"
 		await ctx.send(output)
 """
 def setup(bot):
