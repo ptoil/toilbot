@@ -37,6 +37,7 @@ bot.load_extension("cogs.connectfour")
 bot.load_extension("cogs.blackjack")
 bot.load_extension("cogs.roles")
 bot.load_extension("cogs.cobe")
+bot.load_extension("cogs.cubing")
 
 @bot.event
 async def on_connect():
@@ -53,8 +54,12 @@ async def on_command_error(ctx, error):
 		pass
 	elif isinstance(error, commands.errors.NotOwner):
 		await ctx.send("Only ptoil has access to that command <:FUNgineer:918637730542522408>")
+	elif isinstance(error, commands.MissingRequiredArgument):
+		pass #handled locally per command
 	elif isinstance(error, NotInToilbotChannel):
 		print(f"NotInToilbotChannel: {ctx.author.name}: {ctx.message.content}")
+	elif isinstance(error, NotInToilbotOrCubingChannel):
+		print(f"NotInToilbotOrCubingChannel: {ctx.author.name}: {ctx.message.content}")
 	else:
 		print('Ignoring exception in command {}:'.format(ctx.command))
 		print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
