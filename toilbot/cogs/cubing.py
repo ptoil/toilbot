@@ -59,25 +59,21 @@ class Cubing(commands.Cog):
 			case "2" | "2x2": 
 				if self.lastDay["2x2"] < datetime.datetime.today().day:
 					await self.createDailyThread(ctx, scrambler222.get_WCA_scramble(), "2x2")
-					self.lastDay["2x2"] = datetime.datetime.today().day
 				else:
 					await ctx.send("A 2x2 scramble has already been rolled today.")
 			case "3" | "3x3":
 				if self.lastDay["3x3"] < datetime.datetime.today().day:
 					await self.createDailyThread(ctx, scrambler333.get_WCA_scramble(), "3x3")
-					self.lastDay["3x3"] = datetime.datetime.today().day
 				else:
 					await ctx.send("A 3x3 scramble has already been rolled today.")
 			case "4" | "4x4":
 				if self.lastDay["4x4"] < datetime.datetime.today().day:
 					await self.createDailyThread(ctx, scrambler444.get_WCA_scramble(), "4x4")
-					self.lastDay["4x4"] = datetime.datetime.today().day
 				else:
 					await ctx.send("A 4x4 scramble has already been rolled today.")
 			case "5" | "5x5":
 				if self.lastDay["5x5"] < datetime.datetime.today().day:
 					await self.createDailyThread(ctx, scrambler555.get_WCA_scramble(), "5x5")
-					self.lastDay["5x5"] = datetime.datetime.today().day
 				else:
 					await ctx.send("A 5x5 scramble has already been rolled today.")
 			case _:
@@ -92,6 +88,11 @@ class Cubing(commands.Cog):
 			pass
 
 	async def createDailyThread(self, ctx, scramble, cube):
+		if cube in self.threads.keys():
+			self.threads[cube].archive()
+			self.dailyScores[cube].clear()
+		self.lastDay[cube] = datetime.datetime.today().day
+
 		today = datetime.datetime.today().strftime("%Y-%m-%d")
 		self.threads[cube] = await ctx.message.create_thread(name=f"{cube} Scramble - {today}")
 		await self.threads[cube].send(scramble)
