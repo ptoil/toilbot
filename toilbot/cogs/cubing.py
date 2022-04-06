@@ -89,7 +89,7 @@ class Cubing(commands.Cog):
 
 	async def createDailyThread(self, ctx, scramble, cube):
 		if cube in self.threads.keys():
-			self.threads[cube].archive()
+			await self.threads[cube].archive()
 			self.dailyScores[cube].clear()
 		self.lastDay[cube] = datetime.datetime.today().day
 

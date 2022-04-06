@@ -431,6 +431,7 @@ class MixTea(commands.Cog):
 #		await ctx.send(teaGame.scores)
 
 	@commands.command()
+	@commands.is_owner()
 	@ChannelCheck.in_toilbot_channel()
 	async def exitgame(self, ctx):
 		global teaGame

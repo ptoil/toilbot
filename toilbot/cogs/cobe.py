@@ -34,7 +34,7 @@ class Cobe(commands.Cog):
 		ctx = await self.bot.get_context(message)
 		try:
 			if await ChannelCheck.in_toilbot_channel().predicate(ctx) and self.bot.user in message.mentions and self.cooldown < time.time():
-				self.cooldown = time.time() + 5
+				self.cooldown = time.time() + 1
 				reply = self.brains[message.guild.id].reply(msgWithoutPing)
 				reply = reply[0:1999]
 				await message.channel.send(reply)

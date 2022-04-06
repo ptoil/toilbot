@@ -50,16 +50,18 @@ async def on_ready():
 
 @bot.event
 async def on_command_error(ctx, error):
+	customErrors = (NotInToilbotChannel, NotInToilbotOrCubingChannel, NotOwnerOrGuildOwner)
+
 	if isinstance(error, commands.errors.CommandNotFound):
 		pass
 	elif isinstance(error, commands.errors.NotOwner):
 		await ctx.send("Only ptoil has access to that command <:FUNgineer:918637730542522408>")
 	elif isinstance(error, commands.MissingRequiredArgument):
 		pass #handled locally per command
-	elif isinstance(error, NotInToilbotChannel):
-		print(f"NotInToilbotChannel: {ctx.author.name}: {ctx.message.content}")
-	elif isinstance(error, NotInToilbotOrCubingChannel):
-		print(f"NotInToilbotOrCubingChannel: {ctx.author.name}: {ctx.message.content}")
+	elif isinstance(error, commands.MemberNotFound):
+		pass #^
+	elif isinstance(error, customErrors):
+		print(f"{error.name}: {ctx.author.name}: {ctx.message.content}")
 	else:
 		print('Ignoring exception in command {}:'.format(ctx.command))
 		print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
@@ -93,7 +95,7 @@ async def moon(ctx):
 			return;
 
 @bot.command()
-@commands.is_owner()
+@ChannelCheck.is_owner_or_guild_owner()
 async def say(ctx, *strInput: str):
 	await ctx.send(" ".join(strInput))
 	await ctx.message.delete()
