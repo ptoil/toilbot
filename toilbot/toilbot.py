@@ -36,17 +36,26 @@ bot.load_extension("cogs.mixtea")
 bot.load_extension("cogs.connectfour")
 bot.load_extension("cogs.blackjack")
 bot.load_extension("cogs.roles")
-bot.load_extension("cogs.cobe")
+bot.load_extension("cogs.cobecog")
 bot.load_extension("cogs.cubing")
 
 @bot.event
 async def on_connect():
+	bot.printDebugMessages = False
 	print(f'{bot.user} has connected to Discord')
 
 @bot.event
 async def on_ready():
 	print(f'{bot.user} is ready!')
 
+@bot.command()
+@commands.is_owner()
+async def toggledebug(ctx):
+	bot.printDebugMessages = not bot.printDebugMessages
+	if bot.printDebugMessages:
+		await ctx.send("Debug is ON")
+	else:
+		await ctx.send("Debug is OFF")
 
 @bot.event
 async def on_command_error(ctx, error):
