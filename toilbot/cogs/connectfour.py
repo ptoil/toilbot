@@ -6,7 +6,7 @@ import random
 import asyncio
 import io
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 ########## GLOBALS
 
@@ -49,9 +49,12 @@ class Game():
 			await self.thread.send(file=discord.File(fp=image_bin, filename="image.png"))
 
 	async def drawBoard(self):
-		im = Image.new("RGBA", (350, 300), (0, 0, 0, 255))
+		im = Image.new("RGBA", (350, 350), (0, 0, 0, 255))
 		draw = ImageDraw.Draw(im)
 		draw.rectangle([(0, 0), (350, 300)], fill=(0, 0, 255))
+		font = ImageFont.truetype("fonts/Arial.ttf", 40)
+		for i in range(7):
+			draw.text(((i*50)+15, 300), f"{i+1}", font=font)
 		for j in range(6):
 			for i in range(7):
 				draw.ellipse([((i*50)+5, (j*50)+5), (((i+1)*50)-5, ((j+1)*50)-5)], fill=self.color[self.board[i][j]])
@@ -268,6 +271,11 @@ class ConnectFour(commands.Cog):
 				self.challenge = None
 				await ctx.send("Challenge timed out.")
 			#else game is playing
+
+	@commands.command()
+	async def db(self, ctx):
+		game = Game(ctx, ctx.author, self.bot)
+		await game.drawBoard()
 
 	@commands.Cog.listener()
 	async def on_reaction_add(self, reaction, user):

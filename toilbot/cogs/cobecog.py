@@ -67,7 +67,6 @@ class Cobe(commands.Cog):
 				return msg
 		#else
 		if self.bot.printDebugMessages: print(f"\"{message.content}\" skipped")
-		else: print("dies of cringe")
 		return None
 			
 
