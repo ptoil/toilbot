@@ -3,19 +3,24 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 
+import traceback
+from cogs.exceptions import *
+
 import random
 import asyncio
 import time
 import logging
-
-#logging.basicConfig(level=logging.INFO)
 
 ########## CONSTANTS
 
 load_dotenv()
 TOKEN = os.getenv('TOILBOT_TOKEN')
 
-BOT_OWNER = 205908835435544577;
+
+#logging.basicConfig(level=logging.INFO)
+
+BOT_OWNER = 205908835435544577
+
 
 moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxing_crescent_moon:", ":new_moon:", 
 		 ":waning_crescent_moon:", ":last_quarter_moon:", ":waning_gibbous_moon:", ":full_moon:"]
@@ -23,27 +28,68 @@ moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxin
 
 ########## END CONSTANTS
 
-bot = commands.Bot(command_prefix='.', case_insensitive=True)
+intents = discord.Intents(messages=True, members=True, guilds=True, reactions=True)
+bot = commands.Bot(command_prefix='.', case_insensitive=True, intents=intents)
+
 
 bot.load_extension("cogs.mixtea")
 bot.load_extension("cogs.connectfour")
 bot.load_extension("cogs.battleship")
+bot.load_extension("cogs.blackjack")
+bot.load_extension("cogs.roles")
+bot.load_extension("cogs.cobecog")
+bot.load_extension("cogs.cubing")
+
+@bot.event
+async def on_connect():
+	bot.printDebugMessages = False
+	print(f'{bot.user} has connected to Discord')
 
 @bot.event
 async def on_ready():
-	print(f'{bot.user} has connected to Discord!')
+	print(f'{bot.user} is ready!')
+
+@bot.command()
+@commands.is_owner()
+async def toggledebug(ctx):
+	bot.printDebugMessages = not bot.printDebugMessages
+	if bot.printDebugMessages:
+		await ctx.send("Debug is ON")
+	else:
+		await ctx.send("Debug is OFF")
+
+@bot.event
+async def on_command_error(ctx, error):
+	customErrors = (NotInToilbotChannel, NotInToilbotOrCubingChannel, NotOwnerOrGuildOwner)
+
+	if isinstance(error, commands.errors.CommandNotFound):
+		pass
+	elif isinstance(error, commands.errors.NotOwner):
+		await ctx.send("Only ptoil has access to that command <:FUNgineer:918637730542522408>")
+	elif isinstance(error, commands.MissingRequiredArgument):
+		pass #handled locally per command
+	elif isinstance(error, commands.MemberNotFound):
+		pass #^
+	elif isinstance(error, customErrors):
+		print(f"{error.name}: {ctx.author.name}: {ctx.message.content}")
+	else:
+		print('Ignoring exception in command {}:'.format(ctx.command))
+		print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
+		await ctx.send(f"<@205908835435544577> pepew\n{type(error)}: {error}")
+
 
 """
 @bot.event
 async def on_message(message):
 	if message.author == bot.user:
 		return
-	
+
 	await bot.process_commands(message)
 """
 
 
 @bot.command(aliases=["moontea"])
+@ChannelCheck.in_toilbot_channel()
 async def moon(ctx):
 	counterMessage = None
 	counter = 0
@@ -59,25 +105,16 @@ async def moon(ctx):
 			return;
 
 @bot.command()
-async def say(ctx, botName: str, *strInput: str):
-	if ctx.author.id == BOT_OWNER:
-		if (botName == "toilbot"):
-			await ctx.send(" ".join(strInput))
-	else:
-		await ctx.send(f"{ctx.author.mention} You don't have permission to use that command.")
+@ChannelCheck.is_owner_or_guild_owner()
+async def say(ctx, *strInput: str):
+	await ctx.send(" ".join(strInput))
+	await ctx.message.delete()
 
 @bot.command()
-async def accountage(ctx):
-	await ctx.send(f"{ctx.author.mention}'s account was made on {ctx.author.created_at}")
-
-@bot.command()
-async def shutdown(ctx, botName: str):
-	if ctx.author.id == BOT_OWNER:
-		if botName == "toilbot":
-			await ctx.send("Shutting down")
-			print("Bot was shutdown")
-			await bot.logout()
-	else:
-		await ctx.send("You don't have permission to use that command.")
+@commands.is_owner()
+async def shutdown(ctx):
+	await ctx.send("Shutting down")
+	print("Bot was shutdown")
+	await bot.close()
 
 bot.run(TOKEN)
