@@ -9,6 +9,7 @@ import json
 import time
 import re
 from table2ascii import table2ascii as t2a, PresetStyle
+from PIL import Image, ImageDraw, ImageFont
 
 class Card():
 
@@ -23,6 +24,22 @@ class Card():
 			return 10
 		else:
 			return self.rank
+
+	def file_name(self):
+		output = ""
+		match self.rank:
+			case 1: output += "A"
+			case 11: output += "J"
+			case 12: output += "Q"
+			case 13: output += "K"
+			case _: output += str(self.rank)
+		match self.suit:
+			case "Diamonds": output += "D"
+			case "Hearts": output += "H"
+			case "Clubs": output += "C"
+			case "Spades": output += "S"
+		output += ".png"
+		return output
 
 	def __str__(self):
 		if self.rank >= 2 and self.rank <= 10:
@@ -136,15 +153,11 @@ class Game():
 	def __init__(self, ctx, p, b):
 		self.ctx = ctx
 		self.bet = b
+		self.dealer = Dealer()
 		self.player = p
 		self.playerName = ctx.author.display_name
-		self.playerMsg = None
-		self.playerEmbed = None
-		self.playerCardCount = 2
+		self.msg = None
 		self.hitStay = None
-		self.dealerMsg = None
-		self.dealerEmbed = None
-		self.dealer = Dealer()
 		self.deck = Deck()
 		self.deck.shuffle()
 		
@@ -156,7 +169,10 @@ class Game():
 		self.player.money -= self.bet
 
 		self.dealCards()
-#		self.dealBJ()
+
+		await self.postCards()
+
+		"""
 		if self.player.score == 21 and self.dealer.score == 21:
 			await self.postDealerMsgBlackjack()
 			await self.postPlayerMsgBlackjack()
@@ -178,7 +194,7 @@ class Game():
 			await self.postPlayerMsg()
 
 			#wait for hit/stay
-		
+		"""
 		return True #returns false if not enough money
 
 	def dealCards(self):
@@ -192,6 +208,45 @@ class Game():
 		self.dealer.addCard(Card("Diamonds", 10))
 		self.player.addCard(self.deck.drawCard())
 		self.player.addCard(self.deck.drawCard())
+
+	async def sendImages(self, dealerIm, playerIm):
+		with io.BytesIO() as dealerBin, io.BytesIO() as playerBin:
+			dealerIm.save(dealerBin, "PNG")
+			playerIm.save(playerBin, "PNG")
+			dealerBin.seek(0)
+			playerBin.seek(0)
+			if self.msg is None:
+				self.hitStay = HitStay(self)
+				self.msg = await self.ctx.send(
+					files=[
+					discord.File(fp=dealerBin, filename="dealer.png"),
+					discord.File(fp=playerBin, filename="player.png")],
+					view=self.hitStay
+				)
+			else:
+				await self.msg.edit(
+					files=[
+					discord.File(fp=dealerBin, filename="dealer.png"),
+					discord.File(fp=playerBin, filename="player.png")],
+				)
+			
+
+	async def postCards(self):
+		dealerIm = Image.new("RGBA", (750, 475), (53, 101, 77, 255))
+		playerIm = Image.new("RGBA", (397, 475), (53, 101, 77, 255))
+
+		for i in range(len(self.dealer.cards)):
+			cardIm = Image.open(f"cogs/cards/{self.dealer.cards[i].file_name()}", 'r')
+			dealerIm.paste(cardIm, (20 + (i * 45), 20), cardIm)
+		for i in range(len(self.player.cards)):
+			cardIm = Image.open(f"cogs/cards/{self.player.cards[i].file_name()}", 'r')
+			playerIm.paste(cardIm, (20 + (i * 45), 20), cardIm)
+		
+		draw = ImageDraw.Draw(dealerIm)
+		draw.text((400, 10), "yo mr white", font=ImageFont.truetype("fonts/arial.ttf", 30))
+
+		await self.sendImages(dealerIm, playerIm)
+
 
 	async def postDealerMsg(self):
 		self.dealerEmbed = discord.Embed(title="Dealer", description="Dealer is waiting for you to finish your turn")
@@ -231,20 +286,20 @@ class Game():
 		
 	async def hit(self):
 		self.player.addCard(self.deck.drawCard())
-		self.playerCardCount += 1
-		self.playerEmbed.add_field(name=f"Card {self.playerCardCount}", value=self.player.cards[self.playerCardCount-1], inline="False")
-		self.playerEmbed.set_field_at(1, name="Score", value=self.player.score, inline="True")
+#		self.playerEmbed.add_field(name=f"Card {self.playerCardCount}", value=self.player.cards[self.playerCardCount-1], inline="False")
+#		self.playerEmbed.set_field_at(1, name="Score", value=self.player.score, inline="True")
 		if self.player.score > 21:
-			self.playerEmbed.description = "You busted!"
-			self.playerEmbed.colour = discord.Colour.red()
-			self.dealerEmbed.description = "The dealer takes your bet"
-			self.dealerEmbed.colour = discord.Colour.green()
-			await self.dealerMsg.edit(embed=self.dealerEmbed)
+#			self.playerEmbed.description = "You busted!"
+#			self.playerEmbed.colour = discord.Colour.red()
+#			self.dealerEmbed.description = "The dealer takes your bet"
+#			self.dealerEmbed.colour = discord.Colour.green()
+#			await self.dealerMsg.edit(embed=self.dealerEmbed)
 			self.hitStay.stop()
-			await self.playerMsg.edit(embed=self.playerEmbed, view=None)
+#			await self.playerMsg.edit(embed=self.playerEmbed, view=None)
 			await self.ctx.message.reply(f"You busted! The Dealer takes your bet. You now have {formatMoney(self.player.money)}")
 		else:
-			await self.playerMsg.edit(embed=self.playerEmbed)
+#			await self.playerMsg.edit(embed=self.playerEmbed)
+			pass
 
 	async def stay(self):
 		self.playerEmbed.description = "You have finished your turn."
@@ -340,14 +395,14 @@ class Blackjack(commands.Cog):
 			self.savePlayers()
 		else:
 			await ctx.message.reply("The minimum bet is $0.01")
-
+	"""
 	@blackjack.error
 	async def blackjack_error(self, ctx, error):
 		if isinstance(error, commands.MissingRequiredArgument):
 			await ctx.message.reply("Please enter a bet amount. For example `.blackjack 5`")
 		else:
 			await ctx.send(f"{type(error)}: {error}")
-		
+	"""
 	@commands.command(brief="Give your money to someone else")
 	async def donate(self, ctx, member: discord.Member, *, amount):
 		if ctx.author.id not in self.players.keys():
