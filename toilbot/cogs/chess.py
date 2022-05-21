@@ -3,8 +3,8 @@ from discord.ext import commands
 
 import asyncio
 import io
-
 from PIL import Image, ImageDraw
+from bidict import bidict
 
 ########## GLOBALS
 
@@ -13,6 +13,8 @@ emoji_second_place = "🥈"
 emoji_third_place  = "🥉"
 emoji_medal        = "🏅"
 emoji_check_mark   = "✅"
+
+letters_to_numbers = bidict({"a":0, "b":1, "c":2, "d":3, "e":4, "f":5, "g":6, "h":7})
 
 ########## END GLOBALS
 
@@ -54,59 +56,125 @@ class Game():
 
 		await self.sendImage(im)
 
-	async def makeMove(self, moveL): #[startX, startY, endX, endY]
-		startPiece = self.board[moveL[0]][moveL[1]]
-		if startPiece == "--":
-			await self.thread.send("no piece")
-			return
-#		await self.thread.send(startPiece)
-		
-		#CHECK that start piece is actually the right color and exists
-		if startPiece == "WP":
-			if ((moveL[2] == moveL[0] and moveL[3] == moveL[1]+1 and self.board[moveL[2]][moveL[3]] == "--") #move forward 1
-			or
-			(moveL[2] == moveL[0] and moveL[3] == moveL[1]+2 and moveL[1] == 1 and
-			self.board[moveL[2]][moveL[3]] == "--" and self.board[moveL[2]][moveL[3]-1] == "--") #move forward 2
-			or
-			(moveL[2] == moveL[0]-1 or moveL[2] == moveL[0]+1) and moveL[3] == moveL[1]+1 and #diagonal take
-			self.board[moveL[2]][moveL[3]][0] == 'B'):
-				self.board[moveL[2]][moveL[3]] = startPiece
-				self.board[moveL[0]][moveL[1]] = "--"
-				await self.drawBoard()
-			else:
-				await self.thread.send("Invalid move")
-
-		elif startPiece == "BP":
-			if ((moveL[2] == moveL[0] and moveL[3] == moveL[1]-1 and self.board[moveL[2]][moveL[3]] == "--") #move forward 1
-			or
-			(moveL[2] == moveL[0] and moveL[3] == moveL[1]-2 and moveL[1] == 6 and
-			self.board[moveL[2]][moveL[3]] == "--" and self.board[moveL[2]][moveL[3]+1] == "--") #move forward 2
-			or
-			((moveL[2] == moveL[0]-1 or moveL[2] == moveL[0]+1) and moveL[3] == moveL[1]-1 and #diagonal take
-			self.board[moveL[2]][moveL[3]][0] == 'W')):
-				self.board[moveL[2]][moveL[3]] = startPiece
-				self.board[moveL[0]][moveL[1]] = "--"
-				await self.drawBoard()
-			else:
-				await self.thread.send("Invalid move")
-
-		elif startPiece[1] == "N":
-			if ((abs(moveL[2] - moveL[0]) == 2 and abs(moveL[3] - moveL[1]) == 1) or 
-			(abs(moveL[2] - moveL[0]) == 1 and abs(moveL[3] - moveL[1]) == 2)):
-				if ((self.board[moveL[2]][moveL[3]][0] != startPiece[0])):
-					self.board[moveL[2]][moveL[3]] = startPiece
-					self.board[moveL[0]][moveL[1]] = "--"
-					await self.drawBoard()
-				else:
-					await self.thread.send("Invalid move")
-			else:
-				await self.thread.send("Invalid move")
-
-#		elif startPiece[1] == "R":
-#			if ()
-
+	async def submitMove(self, moveL): #[startX, startY, endX, endY]
+		if await self.isMoveValid(moveL):
+			self.gameMoves.append(self.toNotation(moveL))
+			self.movePiece(moveL)
+			await self.drawBoard()
 		else:
-			await self.thread.send("piece not supported")
+			await self.thread.send("Invalid move")
+
+	def toNotation(self, moveL):
+		startPiece = self.board[moveL[0]][moveL[1]]
+		endPiece = self.board[moveL[2]][moveL[3]]
+		output = ""
+
+		if startPiece[1] == "P":
+			output += letters_to_numbers.inverse[moveL[0]]
+			if moveL[0] == moveL[2]:
+				output += str(moveL[3]+1)
+			else:
+				output += 'x' + letters_to_numbers.inverse[moveL[2]] + str(moveL[3]+1)
+				#TODO En passant
+		elif startPiece[1] == ""
+
+		return output
+
+
+
+	async def isMoveValid(self, moveL): #[startX, startY, endX, endY] #TODO make this not async once done testing and prints no longer needed
+		startPiece = self.board[moveL[0]][moveL[1]]
+		endPiece = self.board[moveL[2]][moveL[3]]
+		if startPiece == "--":
+			return
+
+		def rookCheck():
+			if moveL[0] == moveL[2]: #vertical
+				if moveL[1] < moveL[3]:
+					r = range(moveL[1]+1, moveL[3])
+				elif moveL[1] > moveL[3]:
+					r = range(moveL[1]-1, moveL[3], -1)
+				else:
+					return False #start == end
+				for i in r:                            #check spaces between start and end
+					if self.board[moveL[0]][i] != "--":
+						return False
+				return endPiece[0] != startPiece[0]    #end is empty or opposite color
+
+			elif moveL[1] == moveL[3]: #horizontal
+				if moveL[0] < moveL[2]:
+					r = range(moveL[0]+1, moveL[2])
+				elif moveL[0] > moveL[2]:
+					r = range(moveL[0]-1, moveL[2], -1)
+				else:
+					return False #start == end
+				for i in r:                            #check spaces between start and end
+					if self.board[i][moveL[1]] != "--":
+						return False
+				return endPiece[0] != startPiece[0]    #end is empty or opposite color
+
+		def bishopCheck():
+			try:
+				if abs(moveL[0] - moveL[2]) / abs(moveL[1] - moveL[3]) == 1: #throws ZeroDivisionError if row is same
+					if moveL[0] < moveL[2]:
+						x_range = range(moveL[0]+1, moveL[2])
+					elif moveL[0] > moveL[2]:
+						x_range = range(moveL[0]-1, moveL[2], -1)
+					if moveL[1] < moveL[3]:
+						y_range = range(moveL[1]+1, moveL[3])
+					elif moveL[1] > moveL[3]:
+						y_range = range(moveL[1]-1, moveL[3], -1)
+					for x, y in zip(x_range, y_range):
+						if self.board[x][y] != "--":
+							return False
+					return endPiece[0] != startPiece[0]
+				else:
+					return False
+			except ZeroDivisionError:
+				return False
+		
+		#TODO check that start piece is actually the right color and exists
+		if startPiece[1] == "R":
+			return rookCheck()
+		elif startPiece[1] == "B":
+			return bishopCheck()
+		elif startPiece[1] == "Q":
+			return bishopCheck() or rookCheck()
+		elif startPiece[1] == "N":
+			return (
+				(
+					(abs(moveL[2] - moveL[0]) == 2 and abs(moveL[3] - moveL[1]) == 1)
+					or 
+					(abs(moveL[2] - moveL[0]) == 1 and abs(moveL[3] - moveL[1]) == 2)
+				)
+				and endPiece[0] != startPiece[0]
+			)
+		elif startPiece[1] == "K":
+			x_dist = abs(moveL[0] - moveL[2])
+			y_dist = abs(moveL[1] - moveL[3])
+			return (x_dist <= 1 and y_dist <= 1 and (x_dist > 0 or y_dist > 0) and endPiece[0] != startPiece[0])
+		elif startPiece == "WP":
+			return (
+				(moveL[2] == moveL[0] and moveL[3] == moveL[1]+1 and endPiece == "--") #move forward 1
+				or
+				(moveL[2] == moveL[0] and moveL[3] == moveL[1]+2 and moveL[1] == 1 and endPiece == "--" and self.board[moveL[2]][moveL[3]-1] == "--") #move forward 2
+				or
+				((moveL[2] == moveL[0]-1 or moveL[2] == moveL[0]+1) and moveL[3] == moveL[1]+1 and endPiece[0] == 'B') #diagonal take
+			)
+		elif startPiece == "BP":
+			return (
+				(moveL[2] == moveL[0] and moveL[3] == moveL[1]-1 and endPiece == "--") #move forward 1
+				or
+				(moveL[2] == moveL[0] and moveL[3] == moveL[1]-2 and moveL[1] == 6 and endPiece == "--" and self.board[moveL[2]][moveL[3]+1] == "--") #move forward 2
+				or
+				((moveL[2] == moveL[0]-1 or moveL[2] == moveL[0]+1) and moveL[3] == moveL[1]-1 and endPiece[0] == 'W') #diagonal take
+			)
+		else: #startPiece == "--"
+			return False
+
+	def movePiece(self, moveL): #[startX, startY, endX, endY]
+		self.board[moveL[2]][moveL[3]] = self.board[moveL[0]][moveL[1]]
+		self.board[moveL[0]][moveL[1]] = "--"
 
 
 class Challenge():
@@ -182,16 +250,15 @@ class Chess(commands.Cog):
 #			if ctx.message.author == game.players[game.currentP]:
 				try:
 					moveL = [char for char in move]
-					letters = {"a":0, "b":1, "c":2, "d":3, "e":4, "f":5, "g":6, "h":7}
-					moveL[0] = letters[moveL[0].lower()]
+					moveL[0] = letters_to_numbers[moveL[0].lower()]
 					moveL[1] = int(moveL[1])-1
-					moveL[2] = letters[moveL[2].lower()]
+					moveL[2] = letters_to_numbers[moveL[2].lower()]
 					moveL[3] = int(moveL[3])-1
 					if len(moveL) != 4 or moveL[1] < 0 or moveL[1] > 7 or moveL[3] < 0 or moveL[3] > 7:
 						await ctx.send("Invalid input")
 					else:
-						await self.tempGame.makeMove(moveL)
-				except (ValueError, IndexError):
+						await self.tempGame.submitMove(moveL)
+				except (ValueError, IndexError, KeyError):
 					await ctx.send("Invalid input")
 
 	def cleanGames(self): #garbage collection, removes games from self.games if their thread is archived
