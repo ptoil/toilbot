@@ -27,13 +27,23 @@ class Game():
 		self.board = [
 		["WR", "WP", "--", "--", "--", "--", "BP", "BR"],
 		["WN", "WP", "--", "--", "--", "--", "BP", "BN"],
-		["WB", "WP", "--", "--", "--", "--", "BP", "BB"],
+		["WB", "WP", "--", "WQ", "--", "WQ", "BP", "BB"],
 		["WQ", "WP", "--", "--", "--", "--", "BP", "BQ"],
-		["WK", "WP", "--", "--", "--", "--", "BP", "BK"],
+		["WK", "WP", "--", "WQ", "--", "--", "BP", "BK"],
 		["WB", "WP", "--", "--", "--", "--", "BP", "BB"],
 		["WN", "WP", "--", "--", "--", "--", "BP", "BN"],
 		["WR", "WP", "--", "--", "--", "--", "BP", "BR"]
 		]
+		# self.board = [
+		# ["WR", "WP", "--", "--", "--", "--", "--", "--"],
+		# ["WN", "WP", "--", "--", "--", "--", "--", "--"],
+		# ["WB", "WP", "--", "--", "--", "--", "--", "--"],
+		# ["WQ", "WP", "--", "--", "--", "--", "--", "--"],
+		# ["WK", "WP", "--", "--", "--", "--", "--", "--"],
+		# ["WB", "WP", "--", "--", "--", "--", "--", "--"],
+		# ["WN", "WP", "--", "--", "--", "--", "--", "--"],
+		# ["WR", "WP", "--", "--", "--", "--", "--", "--"]
+		# ]
 		self.gameMoves = []
 		self.gameImages = []
 
@@ -57,7 +67,7 @@ class Game():
 		await self.sendImage(im)
 
 	async def submitMove(self, moveL): #[startX, startY, endX, endY]
-		if await self.isMoveValid(moveL):
+		if self.isMoveValid(moveL):
 			self.gameMoves.append(self.toNotation(moveL))
 			self.movePiece(moveL)
 			await self.drawBoard()
@@ -68,21 +78,55 @@ class Game():
 		startPiece = self.board[moveL[0]][moveL[1]]
 		endPiece = self.board[moveL[2]][moveL[3]]
 		output = ""
+		notatedDest = letters_to_numbers.inverse[moveL[2]] + str(moveL[3]+1)
 
-		if startPiece[1] == "P":
+		def disambiguateMove(moveL):
+			out = ""
+			otherPieces = []
+			for i in range(8):
+				for j in range(8):
+					if self.board[i][j] == startPiece and (i, j) != (moveL[0], moveL[1]):
+						otherPieces.append((i, j))
+
+			fileUsed = False
+			rankUsed = False
+			for piece in otherPieces:
+				if self.isMoveValid([piece[0], piece[1], moveL[2], moveL[3]]):
+					if piece[0] == moveL[0] and not fileUsed:
+						out = str(moveL[1]+1)
+						fileUsed = True
+					elif piece[1] == moveL[1] and not rankUsed:
+						if fileUsed == True:
+							out = letters_to_numbers.inverse[moveL[0]] + str(moveL[1]+1)
+						else:
+							out = letters_to_numbers.inverse[moveL[0]]
+						rankUsed = True
+					else:
+						out = letters_to_numbers.inverse[moveL[0]]
+						fileUsed = True
+			return out
+
+		if startPiece[1] == 'P':
 			output += letters_to_numbers.inverse[moveL[0]]
 			if moveL[0] == moveL[2]:
 				output += str(moveL[3]+1)
 			else:
-				output += 'x' + letters_to_numbers.inverse[moveL[2]] + str(moveL[3]+1)
+				output += disambiguateMove(moveL)
+				output += 'x' + notatedDest
 				#TODO En passant
-		elif startPiece[1] == ""
+		else:
+			output += startPiece[1]
+			output += disambiguateMove(moveL)
+			if endPiece == "--":
+				output += notatedDest
+			else:
+				output += 'x' + notatedDest
 
 		return output
 
 
 
-	async def isMoveValid(self, moveL): #[startX, startY, endX, endY] #TODO make this not async once done testing and prints no longer needed
+	def isMoveValid(self, moveL): #[startX, startY, endX, endY] #TODO make this not async once done testing and prints no longer needed
 		startPiece = self.board[moveL[0]][moveL[1]]
 		endPiece = self.board[moveL[2]][moveL[3]]
 		if startPiece == "--":
@@ -113,6 +157,9 @@ class Game():
 						return False
 				return endPiece[0] != startPiece[0]    #end is empty or opposite color
 
+			else: #horizontal and vertical
+				return False
+
 		def bishopCheck():
 			try:
 				if abs(moveL[0] - moveL[2]) / abs(moveL[1] - moveL[3]) == 1: #throws ZeroDivisionError if row is same
@@ -134,13 +181,13 @@ class Game():
 				return False
 		
 		#TODO check that start piece is actually the right color and exists
-		if startPiece[1] == "R":
+		if startPiece[1] == 'R':
 			return rookCheck()
-		elif startPiece[1] == "B":
+		elif startPiece[1] == 'B':
 			return bishopCheck()
-		elif startPiece[1] == "Q":
+		elif startPiece[1] == 'Q':
 			return bishopCheck() or rookCheck()
-		elif startPiece[1] == "N":
+		elif startPiece[1] == 'N':
 			return (
 				(
 					(abs(moveL[2] - moveL[0]) == 2 and abs(moveL[3] - moveL[1]) == 1)
@@ -149,7 +196,7 @@ class Game():
 				)
 				and endPiece[0] != startPiece[0]
 			)
-		elif startPiece[1] == "K":
+		elif startPiece[1] == 'K':
 			x_dist = abs(moveL[0] - moveL[2])
 			y_dist = abs(moveL[1] - moveL[3])
 			return (x_dist <= 1 and y_dist <= 1 and (x_dist > 0 or y_dist > 0) and endPiece[0] != startPiece[0])
@@ -260,6 +307,17 @@ class Chess(commands.Cog):
 						await self.tempGame.submitMove(moveL)
 				except (ValueError, IndexError, KeyError):
 					await ctx.send("Invalid input")
+
+	@commands.command()
+	async def t(self, ctx):
+		move = "h1a3"
+		moveL = [char for char in move]
+		moveL[0] = letters_to_numbers[moveL[0].lower()]
+		moveL[1] = int(moveL[1])-1
+		moveL[2] = letters_to_numbers[moveL[2].lower()]
+		moveL[3] = int(moveL[3])-1
+		x = self.tempGame.isMoveValid(moveL)
+		await ctx.send(x)
 
 	def cleanGames(self): #garbage collection, removes games from self.games if their thread is archived
 		delThreads = []
