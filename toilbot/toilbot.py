@@ -112,6 +112,11 @@ async def say(ctx, *strInput: str):
 	await ctx.message.delete()
 
 @bot.command()
+@CustomChecks.in_toilbot_channel()
+async def sourcecode(ctx):
+	await ctx.send("https://github.com/ptoil/DiscordBots")
+
+@bot.command()
 @commands.is_owner()
 async def shutdown(ctx):
 	await ctx.send("Shutting down")
