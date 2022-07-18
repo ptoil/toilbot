@@ -359,7 +359,7 @@ class MixTea(commands.Cog):
 #		await self.bot.process_commands(message)
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def longtea(self, ctx):
 		global teaGame
 		if teaGame is not None:
@@ -370,7 +370,7 @@ class MixTea(commands.Cog):
 		teaGame = None
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def quicktea(self, ctx):
 		global teaGame
 		if teaGame is not None:
@@ -381,7 +381,7 @@ class MixTea(commands.Cog):
 		teaGame = None
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def manytea(self, ctx):
 		global teaGame
 		if teaGame is not None:
@@ -392,7 +392,7 @@ class MixTea(commands.Cog):
 		teaGame = None
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def mixtea(self, ctx):
 		global teaExecute
 		global teaGame
@@ -407,7 +407,7 @@ class MixTea(commands.Cog):
 
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def scores(self, ctx):
 		global teaGame
 		if teaGame is None:
@@ -432,7 +432,7 @@ class MixTea(commands.Cog):
 
 	@commands.command()
 	@commands.is_owner()
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def exitgame(self, ctx):
 		global teaGame
 		global teaExecute

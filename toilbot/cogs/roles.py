@@ -22,7 +22,7 @@ class Roles(commands.Cog):
 #		json.dump(self.players, open("saves/players.json", "w"))
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def setcolor(self, ctx, color, *, name=None):
 		try:
 			if color[0] == '#':
@@ -63,7 +63,7 @@ class Roles(commands.Cog):
 			pass
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def clearcolor(self, ctx):
 		for role in ctx.author.roles:
 			if role.id in self.roles:

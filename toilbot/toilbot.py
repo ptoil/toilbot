@@ -28,7 +28,7 @@ moons = [":full_moon:", ":waxing_gibbous_moon:", ":first_quarter_moon:", ":waxin
 
 ########## END CONSTANTS
 
-intents = discord.Intents(messages=True, members=True, guilds=True, reactions=True)
+intents = discord.Intents(messages=True, members=True, guilds=True, reactions=True, voice_states=True)
 bot = commands.Bot(command_prefix='.', case_insensitive=True, intents=intents)
 
 
@@ -38,6 +38,7 @@ bot.load_extension("cogs.blackjack")
 bot.load_extension("cogs.roles")
 bot.load_extension("cogs.cobecog")
 bot.load_extension("cogs.cubing")
+bot.load_extension("cogs.voice")
 
 @bot.event
 async def on_connect():
@@ -59,18 +60,19 @@ async def toggledebug(ctx):
 
 @bot.event
 async def on_command_error(ctx, error):
-	customErrors = (NotInToilbotChannel, NotInToilbotOrCubingChannel, NotOwnerOrGuildOwner)
+	errorsHandledLocally = (commands.MissingRequiredArgument, commands.MemberNotFound)
+	customErrors = (NotInToilbotChannel, NotInToilbotOrCubingChannel, NotOwnerOrGuildOwner, NotInToilbotsVC)
 
 	if isinstance(error, commands.errors.CommandNotFound):
 		pass
 	elif isinstance(error, commands.errors.NotOwner):
 		await ctx.send("Only ptoil has access to that command <:FUNgineer:918637730542522408>")
-	elif isinstance(error, commands.MissingRequiredArgument):
+	elif isinstance(error, errorsHandledLocally):
 		pass #handled locally per command
-	elif isinstance(error, commands.MemberNotFound):
-		pass #^
 	elif isinstance(error, customErrors):
 		print(f"{error.name}: {ctx.author.name}: {ctx.message.content}")
+	elif isinstance(error, commands.errors.CheckFailure):
+		pass #If the check failed then I wanted it to be ignored
 	else:
 		print('Ignoring exception in command {}:'.format(ctx.command))
 		print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
@@ -88,7 +90,7 @@ async def on_message(message):
 
 
 @bot.command(aliases=["moontea"])
-@ChannelCheck.in_toilbot_channel()
+@CustomChecks.in_toilbot_channel()
 async def moon(ctx):
 	counterMessage = None
 	counter = 0
@@ -104,7 +106,7 @@ async def moon(ctx):
 			return;
 
 @bot.command()
-@ChannelCheck.is_owner_or_guild_owner()
+@CustomChecks.is_owner_or_guild_owner()
 async def say(ctx, *strInput: str):
 	await ctx.send(" ".join(strInput))
 	await ctx.message.delete()

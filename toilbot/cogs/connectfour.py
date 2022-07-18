@@ -242,7 +242,7 @@ class ConnectFour(commands.Cog):
 		self.challenge = None
 
 	@commands.command(aliases=["c4"])
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def connectfour(self, ctx):
 		self.cleanGames()
 		if isinstance(ctx.channel, discord.Thread):

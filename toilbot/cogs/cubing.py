@@ -35,7 +35,7 @@ class Cubing(commands.Cog):
 #	def save
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_or_cubing_channel()
+	@CustomChecks.in_toilbot_or_cubing_channel()
 	async def scramble(self, ctx, puzzle):
 		match puzzle:
 			case "2" | "2x2":
@@ -50,7 +50,7 @@ class Cubing(commands.Cog):
 				await ctx.send("List of supported scrambles: 2x2, 3x3, 4x4, 5x5")
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_or_cubing_channel()
+	@CustomChecks.in_toilbot_or_cubing_channel()
 	async def dailyscramble(self, ctx, puzzle):
 		if isinstance(ctx.channel, discord.Thread): #This actually shouldnt happen because of the channel check but i'll leave it just in case
 			await ctx.send("You can't do that in a thread.")

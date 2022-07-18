@@ -328,7 +328,7 @@ class Blackjack(commands.Cog):
 #		json.dump(self.players, open("saves/players.json", "w"))
 
 	@commands.command(aliases=["bj"])
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def blackjack(self, ctx, *, bet):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
@@ -365,7 +365,7 @@ class Blackjack(commands.Cog):
 			pass
 		
 	@commands.command(brief="Give your money to someone else")
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def donate(self, ctx, member: discord.Member, *, amount):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
@@ -403,7 +403,7 @@ class Blackjack(commands.Cog):
 			pass
 	
 	@commands.command(aliases=["fm"], brief="Collect $10 every hour")
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def freemoney(self, ctx):
 		if ctx.author.id not in self.players.keys():
 			self.players.update({ctx.author.id : Player(ctx.author.id)})
@@ -453,7 +453,7 @@ class Blackjack(commands.Cog):
 		self.savePlayers()
 
 	@commands.command()
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def money(self, ctx, *, member: discord.Member=None):
 		if member is None:
 			member = ctx.author
@@ -478,7 +478,7 @@ class Blackjack(commands.Cog):
 			pass
 
 	@commands.command(aliases=["lb"])
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def leaderboard(self, ctx):
 		sortedPlayers = sorted(self.players.items(), key = lambda kv:(kv[1].money), reverse=True)
 		guildPlayers = []
@@ -497,7 +497,7 @@ class Blackjack(commands.Cog):
 		await ctx.send(f"```\n{output}\n```")
 
 	@commands.command(aliases=["glb"], hidden=True)
-	@ChannelCheck.in_toilbot_channel()
+	@CustomChecks.in_toilbot_channel()
 	async def globalleaderboard(self, ctx):
 		sortedPlayers = sorted(self.players.items(), key = lambda kv:(kv[1].money), reverse=True)
 		players = []

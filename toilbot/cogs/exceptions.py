@@ -10,7 +10,10 @@ class NotInToilbotOrCubingChannel(commands.CheckFailure):
 class NotOwnerOrGuildOwner(commands.CheckFailure):
 	name = "NotOwnerOrGuildOwner"
 
-class ChannelCheck:
+class NotInToilbotsVC(commands.CheckFailure):
+	name = "NotInToilbotsVC"
+
+class CustomChecks:
 	def in_toilbot_channel():
 		async def predicate(ctx):
 			if ctx.author.id == 205908835435544577: #doesnt apply to bot owner
@@ -45,4 +48,20 @@ class ChannelCheck:
 				return True
 			else:
 				raise NotOwnerOrGuildOwner()
+		return commands.check(predicate)
+
+	def is_in_toilbots_vc():
+		async def predicate(ctx):
+#			print(type(ctx))
+#			print(ctx)
+			if ctx.voice_client is None:                                     #Bot isnt in VC
+				return False
+			elif ctx.author.voice.channel is None:                           #User isn't in VC
+				await ctx.send("You aren't in VC with me")
+				raise NotInToilbotsVC()
+			elif ctx.author.voice.channel.id == ctx.voice_client.channel.id: #Bot/User are in same VC
+				return True
+			else:                                                            #else they arent in same VC
+				await ctx.send("You aren't in VC with me")
+				raise NotInToilbotsVC()
 		return commands.check(predicate)
