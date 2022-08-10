@@ -106,5 +106,23 @@ class Cobe(commands.Cog):
 		self.saveBrains()
 		await ctx.send(f"Brain set for this server.")
 
+	@commands.command()
+	@commands.is_owner()
+	async def currentbrain(self, ctx):
+		if ctx.guild.id not in self.brainPerGuild.keys():
+			await ctx.send("Brain is not set for this guild.")
+		else:
+			await ctx.send(f"Brain for this server is: {self.brainPerGuild[ctx.guild.id]}.")
+
+	@commands.command()
+	@commands.is_owner()
+	async def unsetbrain(self, ctx):
+		if ctx.guild.id not in self.brainPerGuild.keys():
+			await ctx.send("Brain is not set for this guild.")
+		else:
+			b = self.brainPerGuild.pop(ctx.guild.id)
+			self.saveBrains()
+			await ctx.send(f"Brain was {b}. It is now unset.")
+
 def setup(bot):
 	bot.add_cog(Cobe(bot))
