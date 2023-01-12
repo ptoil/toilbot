@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.commands import option
 
 from .exceptions import *
 import asyncio
@@ -54,28 +55,38 @@ class Voice(commands.Cog):
 				print(mp3)
 				await asyncio.sleep(random.randint(300, 600))
 
-	def listdir(self):
+	def listdir():
 		mp3list = [f for f in listdir("cogs/audio") if isfile(join("cogs/audio", f)) and f.endswith(".mp3")]
 		mp3list = [mp3[:-4] for mp3 in mp3list]
 		return mp3list
 
-	@commands.command()
-	@CustomChecks.is_in_toilbots_vc()
+	@commands.slash_command()
+#	@CustomChecks.is_in_toilbots_vc()
+	@option("name", description="Pick an audio clip!", autocomplete=discord.utils.basic_autocomplete(listdir()))
 	async def audio(self, ctx, name):
+		await ctx.send_response(f"you played {name}")
+		"""
 		if ctx.author.id not in self.commandCooldown.keys():
 			self.commandCooldown[ctx.author.id] = 0
 		if self.commandCooldown[ctx.author.id] >= time.time() and not await self.bot.is_owner(ctx.author):
 			secondsLeft = int(self.commandCooldown[ctx.author.id] - time.time())
 			m, s = divmod(secondsLeft, 60)
-			await ctx.message.reply(f"{m}m{s}s left until you can use this command again.")
+			await ctx.send_response(content=f"{m}m{s}s left until you can use this command again.")
 		elif ctx.voice_client.is_playing():
-			await ctx.message.reply("Already playing audio.")
+			await ctx.send_response(content="Already playing audio.")
 		elif name in self.listdir():
 			ctx.voice_client.play(discord.FFmpegPCMAudio(source=f"cogs/audio/{name}.mp3", executable=f"cogs/audio/ffmpeg.exe"))
 			print(f"{name}.mp3 (audio command)")
+			await ctx.send_response(content="Audio played")
 			self.commandCooldown[ctx.author.id] = time.time() + 60
 		else:
-			await ctx.message.reply("That audio does not exist.")
+			await ctx.send_response(content="That audio does not exist.")
+		"""
+
+	@commands.command(name="audio")
+	@CustomChecks.is_in_toilbots_vc()
+	async def audio_deprecated(self, ctx):
+		ctx.reply("Use /audio now")
 
 	@commands.command()
 	async def countdown(self, ctx):
@@ -105,4 +116,4 @@ class Voice(commands.Cog):
 					await self.context.send("aight ima head out")
 
 def setup(bot):
-		bot.add_cog(Voice(bot))
+	bot.add_cog(Voice(bot))

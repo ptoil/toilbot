@@ -24,6 +24,7 @@ class Cobe(commands.Cog):
 	async def on_ready(self):
 		try:
 			self.brainPerGuild = pickle.load(open("saves/brainPerGuild.pickle", "rb"))
+			print("loaded")
 		except FileNotFoundError:
 			pickle.dump(self.brainPerGuild, open("saves/brainPerGuild.pickle", "wb"))
 
@@ -45,7 +46,9 @@ class Cobe(commands.Cog):
 
 		ctx = await self.bot.get_context(message)
 		try:
-			if await ChannelCheck.in_toilbot_channel().predicate(ctx) and self.bot.user in message.mentions and self.cooldown < time.time():
+			if await CustomChecks.in_toilbot_channel().predicate(ctx) and self.bot.user in message.mentions and self.cooldown < time.time():
+				print(message.guild.id)
+				print(self.brainPerGuild.keys())
 				if message.guild.id not in self.brainPerGuild.keys():
 					await ctx.send("In order for toilbot to reply, a brain needs to be selected. Ping ptoil to fix this.")
 					return
@@ -53,7 +56,8 @@ class Cobe(commands.Cog):
 				reply = self.brains[self.brainPerGuild[message.guild.id]].reply(msg)
 				reply = reply[0:1999] #2000 character limit
 				await message.channel.send(reply)
-		except: #cogs.exceptions.NotInToilbotChannel
+		except e: #cogs.exceptions.NotInToilbotChannel
+			print(f"uh oh: {e}")
 			pass
 
 	def formatMessage(self, message): #return None if message should be skipped
