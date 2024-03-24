@@ -32,13 +32,13 @@ intents = discord.Intents(messages=True, members=True, guilds=True, reactions=Tr
 bot = commands.Bot(command_prefix='.', case_insensitive=True, intents=intents)
 
 
-bot.load_extension("cogs.mixtea")
-bot.load_extension("cogs.connectfour")
-bot.load_extension("cogs.blackjack")
-bot.load_extension("cogs.roles")
-bot.load_extension("cogs.cobecog")
-bot.load_extension("cogs.cubing")
-bot.load_extension("cogs.voice")
+bot.load_extension("cogs.mixtea", store=False)
+bot.load_extension("cogs.connectfour", store=False)
+#bot.load_extension("cogs.blackjack", store=False)
+bot.load_extension("cogs.roles", store=False)
+bot.load_extension("cogs.cobecog", store=False)
+#bot.load_extension("cogs.cubing", store=False)
+bot.load_extension("cogs.voice", store=False)
 
 @bot.event
 async def on_connect():

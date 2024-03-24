@@ -50,7 +50,7 @@ class Voice(commands.Cog):
 				prevmp3 = mp3
 				while ctx.voice_client.is_playing():
 					pass #wait until audio isnt playing
-				ctx.voice_client.play(discord.FFmpegPCMAudio(source=f"cogs/audio/{mp3}", executable=f"cogs/audio/ffmpeg.exe"))
+				ctx.voice_client.play(discord.FFmpegPCMAudio(source=f"cogs/audio/{mp3}"))
 				print(mp3)
 				await asyncio.sleep(random.randint(300, 600))
 
@@ -71,7 +71,7 @@ class Voice(commands.Cog):
 		elif ctx.voice_client.is_playing():
 			await ctx.message.reply("Already playing audio.")
 		elif name in self.listdir():
-			ctx.voice_client.play(discord.FFmpegPCMAudio(source=f"cogs/audio/{name}.mp3", executable=f"cogs/audio/ffmpeg.exe"))
+			ctx.voice_client.play(discord.FFmpegPCMAudio(source=f"cogs/audio/{name}.mp3"))
 			print(f"{name}.mp3 (audio command)")
 			self.commandCooldown[ctx.author.id] = time.time() + 60
 		else:
@@ -85,14 +85,29 @@ class Voice(commands.Cog):
 
 	@commands.command()
 	async def listaudios(self, ctx):
-		output = ""
-		for mp3 in self.listdir():
-			output += mp3 + ", "
-		output = output[:-2]
-		await ctx.send(output)
+		output = [""]
+		c = 0
+		for mp3 in sorted(self.listdir()):
+			output[c] += mp3 + ", "
+			if len(output[c]) > 1900:
+				output.append("")
+				c += 1
+		for line in output:
+			line = line[:-2]
+			await ctx.send(line)
 
 	@commands.Cog.listener()
 	async def on_voice_state_update(self, member, before, after):
+		evonyvc_id = 968938377355350096
+		bludwig_id = 333857138982256642
+		evonylore_id = 969429443783323678
+		if member.id == bludwig_id and after.channel is not None and after.channel.id == evonyvc_id: #Bludwig enters evony vc
+			if before.channel is not None:
+				if before.channel.id != evonyvc_id:
+					 await self.bot.get_channel(evonylore_id).send("https://cdn.discordapp.com/attachments/969429443783323678/1140398893138452601/makeitmeme_ms2r7.gif")
+			else:
+				await self.bot.get_channel(evonylore_id).send("https://cdn.discordapp.com/attachments/969429443783323678/1140398893138452601/makeitmeme_ms2r7.gif")
+
 		if member.guild.voice_client is None: #bot isnt in VC
 			return
 
@@ -103,6 +118,7 @@ class Voice(commands.Cog):
 					await member.guild.voice_client.disconnect()
 					self.isRandoing = False
 					await self.context.send("aight ima head out")
+
 
 def setup(bot):
 		bot.add_cog(Voice(bot))
