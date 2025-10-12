@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from .exceptions import *
 
 from pyTwistyScrambler import scrambler333, scrambler222, scrambler444, scrambler555
 import datetime
@@ -13,11 +12,6 @@ class Cubing(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
-		self.players = {}
-		try:
-			self.players = pickle.load(open("saves/players.pickle", "rb"))
-		except FileNotFoundError:
-			pickle.dump(self.players, open("saves/players.pickle", "wb"))
 
 		self.lastDay = { #last day a daily scramble was created
 			"2x2" : 0,
@@ -28,14 +22,57 @@ class Cubing(commands.Cog):
 		self.threads = {} #threads for different cubes {"3x3", discord.Thread}
 		self.lbMessages = {} #the message in each thread that displays the leaderboard {cube, discord.Message}
 		self.dailyScores = {} #dict holding sorted lists holding tuples {cube, [(user, float(time), str(time)]} #saving the input string to eliminate rounding issues on LB
+#		self.scrambleQueue = []
+#		self.queueEnjoyers = {}
 
-	def savePlayers(self):
-		pickle.dump(self.players, open("saves/players.pickle", "wb"))
+#	queue = commands.Group("Queue")
+	"""
+	@commands.group("queue")
+	async def addtoqueue(self, ctx, count):
+		if int(count) > 30:
+			await ctx.send("brother seek help <:Starege:944414670830325830>")
+			return
+		for i in range(int(count)):
+			self.scrambleQueue.append(scrambler333.get_WCA_scramble())
+		await ctx.send('\n'.join(self.scrambleQueue))
 
-#	def save
+	@addtoqueue.error
+	async def give_error(self, ctx, error):
+		if isinstance(error, commands.MemberNotFound):
+			await ctx.send("That user was not found")
+		else:
+			pass
 
 	@commands.command()
-	@CustomChecks.in_toilbot_or_cubing_channel()
+	async def scram(self, ctx):
+		await ctx.send(self.scrambleQueue.pop(0))
+		self.queueEnjoyers = dict.fromkeys(self.queueEnjoyers, 0)
+
+	@commands.command()
+	async def joinqueue(self, ctx):
+		self.queueEnjoyers.update({ctx.author.id : 0})
+		await ctx.send("welcome to the queue <:Squidtoil:1144317094964506624>")
+		print(self.queueEnjoyers)
+
+	@commands.Cog.listener()
+	async def on_message(self, message):
+		if message.author == self.bot.user:
+			return
+
+		if message.author.id in self.queueEnjoyers.keys() and '.' in message.content:
+			self.queueEnjoyers[message.author.id] = 1
+			if all(enjoyer == 1 for enjoyer in self.queueEnjoyers.values()):
+				await message.channel.send(self.scrambleQueue.pop(0))
+				self.queueEnjoyers = dict.fromkeys(self.queueEnjoyers, 0) #reset all enjoyers back to 0
+	"""
+
+
+
+
+
+
+
+	@commands.command()
 	async def scramble(self, ctx, puzzle):
 		match puzzle:
 			case "2" | "2x2":
@@ -50,12 +87,11 @@ class Cubing(commands.Cog):
 				await ctx.send("List of supported scrambles: 2x2, 3x3, 4x4, 5x5")
 
 	@commands.command()
-	@CustomChecks.in_toilbot_or_cubing_channel()
 	async def dailyscramble(self, ctx, puzzle):
-		if isinstance(ctx.channel, discord.Thread): #This actually shouldnt happen because of the channel check but i'll leave it just in case
+		if isinstance(ctx.channel, discord.Thread):
 			await ctx.send("You can't do that in a thread.")
 			return
-		match puzzle: #i should see if i can shorten this since it'll get even bigger if i add more scrambles
+		match puzzle: #TODO i should see if i can shorten this since it'll get even bigger if i add more scrambles
 			case "2" | "2x2": 
 				if self.lastDay["2x2"] < datetime.datetime.today().day:
 					await self.createDailyThread(ctx, scrambler222.get_WCA_scramble(), "2x2")
@@ -124,10 +160,10 @@ class Cubing(commands.Cog):
 			await ctx.message.reply("You've already submitted a time.")
 			return
 
-		if re.search("\d{1,2}:\d{2}\.\d{2}", time):
+		if re.search(r"\d{1,2}:\d{2}\.\d{2}", time):
 			timeArr = re.split("[:.]", time)
 			solveTime = (60 * int(timeArr[0])) + int(timeArr[1]) + (.01 * int(timeArr[2]))
-		elif re.search("\d{1,2}\.\d{2}", time):
+		elif re.search(r"\d{1,2}\.\d{2}", time):
 			timeArr = re.split("[.]", time)
 			solveTime = int(timeArr[0]) + (.01 * int(timeArr[1]))
 		else:
@@ -151,7 +187,7 @@ class Cubing(commands.Cog):
 		)
 		await self.lbMessages[cube].edit(f"```\n{output}\n```")
 		
-	@commands.command()
+	@commands.command(hidden=True)
 	@commands.is_owner()
 	async def deltime(self, ctx, member: discord.Member):
 		cube = ""

@@ -1,31 +1,22 @@
 import discord
 from discord.ext import commands
+import cogs.constants as constants
 
-from .exceptions import *
 import random
 import asyncio
 import io
 
 from PIL import Image, ImageDraw, ImageFont
 
-########## GLOBALS
-
-emoji_first_place  = "🥇"
-emoji_second_place = "🥈"
-emoji_third_place  = "🥉"
-emoji_medal        = "🏅"
-emoji_check_mark   = "✅"
-emoji_red_x        = "❌"
-
-########## END GLOBALS
-
 class Game():
 
-	def __init__(self, thread, p1, p2):
+	def __init__(self, thread, p1, p2, bot):
 		self.thread = thread
 		self.players = (p1, p2)
+		self.vsBot = bot
 		self.currentP = 0
 		self.board = [[-1 for j in range(6)] for i in range(7)]
+		self.heights = [5 for i in range(7)] #index of lowest open slot in each col
 		self.color= {
 			-1: (0, 0, 0),
 			0: (255, 0, 0), #red
@@ -148,35 +139,29 @@ class Game():
 			return False
 
 	async def checkForTie(self):
-		if self.board[0][0] != -1 and self.board[1][0] != -1 and self.board[2][0] != -1 and self.board[3][0] != -1 and self.board[4][0] != -1 and self.board[5][0] != -1 and self.board[6][0] != -1:
+		if all(self.board[i][0] != -1 for i in range(7)):
 			await self.tie()
 			return True
 		else:
 			return False
 
-	async def drop(self, player, col):
-		j = 0
-		while self.board[col][j] == -1:
-			if self.board[col][j+1] == -1:
-				j += 1
-				if (j >= 5): #no pieces in col yet
-					self.board[col][j] = player
-					if not await self.checkForWin(col, j) and not await self.checkForTie():
-						self.currentP = (self.currentP + 1) % 2
-						await self.drawBoard()
-					else:
-						return #so "column is full" doesnt print on a tie
-			else:
-				self.board[col][j] = player
-				if not await self.checkForWin(col, j) and not await self.checkForTie():
-					self.currentP = (self.currentP + 1) % 2
-					await self.drawBoard()
-					j += 1 #prevent tripping if below
-				else:
-					return #so "column is full" doesnt print on a tie
-
-		if j == 0:
+	async def drop(self, col):
+		if self.heights[col] >= 0:
+			self.board[col][self.heights[col]] = self.currentP
+			if not await self.checkForWin(col, self.heights[col]) and not await self.checkForTie():
+				self.heights[col] -= 1
+				self.currentP = (self.currentP + 1) % 2
+				await self.drawBoard()
+				if self.vsBot:
+					await self.CPUMove()
+		else:
 			await self.thread.send("That column is full, choose another.")
+
+	async def CPUMove(self):
+		col = random.randrange(7)
+		while self.board[col][self.heights[col]] != -1:
+			col = random.randrange(7)
+		await self.drop(col)
 
 	async def drawBoardWin(self, winningTiles):
 		im = Image.new("RGBA", (350, 300), (0, 0, 0, 255))
@@ -184,7 +169,7 @@ class Game():
 		draw.rectangle([(0, 0), (350, 300)], fill=(0, 0, 255))
 		for j in range(6):
 			for i in range(7):
-				if (i, j) in winningTiles:
+				if (i, j) in winningTiles: #TODO label numbers
 					draw.ellipse([((i*50)+5, (j*50)+5), (((i+1)*50)-5, ((j+1)*50)-5)], fill=self.color[self.board[i][j]], outline=(0, 255, 0), width=3) #fill transparent, outline gold
 				else:
 					draw.ellipse([((i*50)+5, (j*50)+5), (((i+1)*50)-5, ((j+1)*50)-5)], fill=self.color[self.board[i][j]])
@@ -242,7 +227,6 @@ class ConnectFour(commands.Cog):
 		self.challenge = None
 
 	@commands.command(aliases=["c4"])
-	@CustomChecks.in_toilbot_channel()
 	async def connectfour(self, ctx):
 		self.cleanGames()
 		if isinstance(ctx.channel, discord.Thread):
@@ -256,12 +240,12 @@ class ConnectFour(commands.Cog):
 		elif ctx.message.mentions[0] == ctx.author:
 			await ctx.send("You can't play against yourself.")
 		elif ctx.message.mentions[0] == self.bot.user:
-			await ctx.send("I don't want to play with you.")
+			await self.startGameAgainstToilbot(ctx)
 		else:
 			confirm = await ctx.send(f"{ctx.message.mentions[0].mention} {ctx.message.author.display_name} wants to play Connect Four. Do you accept the challenge?")
 			self.challenge = Challenge(confirm, ctx.author, ctx.message.mentions[0])
-			await confirm.add_reaction(emoji_check_mark)
-			await confirm.add_reaction(emoji_red_x)
+			await confirm.add_reaction(constants.EMOJI_CHECK_MARK)
+			await confirm.add_reaction(constants.EMOJI_RED_X)
 
 			challengeHash = hash(self.challenge) #prevent previous challenge from causing early timeout on current challenge if they happen within a minute of each other
 			await asyncio.sleep(60)
@@ -272,24 +256,24 @@ class ConnectFour(commands.Cog):
 				await ctx.send("Challenge timed out.")
 			#else game is playing
 
-	@commands.command()
-	async def db(self, ctx):
-		game = Game(ctx, ctx.author, self.bot)
-		await game.drawBoard()
-
 	@commands.Cog.listener()
 	async def on_reaction_add(self, reaction, user):
-		if self.challenge is not None:
-			if reaction.message == self.challenge.message:
-				if user == self.challenge.player2 and reaction.emoji == emoji_check_mark:
-					thread = await self.challenge.message.create_thread(name=f"{self.challenge.player1.display_name} vs {self.challenge.player2.display_name}")
-					game = Game(thread, self.challenge.player1, self.challenge.player2)
-					self.games.update({thread.id : game})
-					await game.startGame()
-					self.challenge = None
-				elif user == self.challenge.player2 and reaction.emoji == emoji_red_x:
-					await reaction.message.channel.send(f"{self.challenge.player1.mention} {self.challenge.player2.display_name} has declined.")
-					self.challenge = None
+		if self.challenge is not None and reaction.message == self.challenge.message:
+			if user == self.challenge.player2 and reaction.emoji == constants.EMOJI_CHECK_MARK:
+				thread = await self.challenge.message.create_thread(name=f"{self.challenge.player1.display_name} vs {self.challenge.player2.display_name}")
+				game = Game(thread, self.challenge.player1, self.challenge.player2, False)
+				self.games.update({thread.id : game})
+				await game.startGame()
+				self.challenge = None
+			elif user == self.challenge.player2 and reaction.emoji == constants.EMOJI_RED_X:
+				await reaction.message.channel.send(f"{self.challenge.player1.mention} {self.challenge.player2.display_name} has declined.")
+				self.challenge = None
+
+	async def startGameAgainstToilbot(self, ctx):
+		thread = await ctx.message.create_thread(name=f"{ctx.author.display_name} vs {self.bot.user.display_name}")
+		game = Game(thread, ctx.author, self.bot.user, True)
+		self.games.update({thread.id : game})
+		await game.startGame()
 
 	@commands.command(aliases=["p"], brief="You can use .p1 through .p7 to play")
 	async def play(self, ctx, num):
@@ -301,7 +285,7 @@ class ConnectFour(commands.Cog):
 					if col < 1 or col > 7:
 						await ctx.send("Number isn't in range")
 					else:
-						await game.drop(game.currentP, col-1)
+						await game.drop(col-1)
 				except ValueError:
 					await ctx.send("Invalid input")
 

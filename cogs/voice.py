@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 
-from .exceptions import *
 import asyncio
 import random
 from os import listdir
@@ -29,7 +28,6 @@ class Voice(commands.Cog):
 			return True
 
 	@commands.command()
-	@CustomChecks.is_in_toilbots_vc()
 	async def leaveVC(self, ctx):
 		self.isRandoing = False
 		if ctx.voice_client is not None:
@@ -60,7 +58,6 @@ class Voice(commands.Cog):
 		return mp3list
 
 	@commands.command()
-	@CustomChecks.is_in_toilbots_vc()
 	async def audio(self, ctx, name):
 		if ctx.author.id not in self.commandCooldown.keys():
 			self.commandCooldown[ctx.author.id] = 0
@@ -73,7 +70,7 @@ class Voice(commands.Cog):
 		elif name in self.listdir():
 			ctx.voice_client.play(discord.FFmpegPCMAudio(source=f"cogs/audio/{name}.mp3"))
 			print(f"{name}.mp3 (audio command)")
-			self.commandCooldown[ctx.author.id] = time.time() + 60
+			self.commandCooldown[ctx.author.id] = time.time()# + 60
 		else:
 			await ctx.message.reply("That audio does not exist.")
 

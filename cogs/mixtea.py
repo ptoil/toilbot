@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 
-from .exceptions import *
 import random
 import asyncio
 
@@ -42,7 +41,7 @@ class Tea:
 	def __init__(self, ctx, bot):
 		self.ctx = ctx
 		self.bot = bot
-		self.rawWords = open("collins_scrabble.txt", "r").read()
+		self.rawWords = open("cogs/words/words.txt", "r").read()
 		self.wordsList = self.rawWords.split("\n")
 		self.phrase = ""
 		self.randWord = ""
@@ -359,7 +358,6 @@ class MixTea(commands.Cog):
 #		await self.bot.process_commands(message)
 
 	@commands.command()
-	@CustomChecks.in_toilbot_channel()
 	async def longtea(self, ctx):
 		global teaGame
 		if teaGame is not None:
@@ -370,7 +368,6 @@ class MixTea(commands.Cog):
 		teaGame = None
 
 	@commands.command()
-	@CustomChecks.in_toilbot_channel()
 	async def quicktea(self, ctx):
 		global teaGame
 		if teaGame is not None:
@@ -381,7 +378,6 @@ class MixTea(commands.Cog):
 		teaGame = None
 
 	@commands.command()
-	@CustomChecks.in_toilbot_channel()
 	async def manytea(self, ctx):
 		global teaGame
 		if teaGame is not None:
@@ -392,7 +388,6 @@ class MixTea(commands.Cog):
 		teaGame = None
 
 	@commands.command()
-	@CustomChecks.in_toilbot_channel()
 	async def mixtea(self, ctx):
 		global teaExecute
 		global teaGame
@@ -407,7 +402,6 @@ class MixTea(commands.Cog):
 
 
 	@commands.command()
-	@CustomChecks.in_toilbot_channel()
 	async def scores(self, ctx):
 		global teaGame
 		if teaGame is None:
@@ -432,7 +426,6 @@ class MixTea(commands.Cog):
 
 	@commands.command()
 	@commands.is_owner()
-	@CustomChecks.in_toilbot_channel()
 	async def exitgame(self, ctx):
 		global teaGame
 		global teaExecute

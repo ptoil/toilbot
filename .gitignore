@@ -1,3 +1,6 @@
 .env
-
+.venv/
 audio/
+brains/
+*.db
+__pycache__/
