@@ -327,12 +327,12 @@ class Blackjack(commands.Cog):
 		UserID = ctx.author.id
 		db.addBlackjackUser(UserID)
 
-		if db.getBlackjackCooldown(UserID) >= time.time():
+		if db.getBlackjackMoney(UserID) >= 100:
+			await ctx.message.reply("You can only use this command if you have less than $100")
+		elif db.getBlackjackCooldown(UserID) >= time.time():
 			secondsLeft = int(db.getBlackjackCooldown(UserID) - time.time())
 			m, s = divmod(secondsLeft, 60)
 			await ctx.message.reply(f"{m}m{s}s left until you can use this command again.")
-		elif db.getBlackjackMoney(UserID) >= 100:
-			await ctx.message.reply("You can only use this command if you have less than $100")
 		else:
 			db.increaseBlackjackMoney(UserID, 10)
 			db.setBlackjackCooldown(UserID, time.time() + 3600)
@@ -420,7 +420,10 @@ class Blackjack(commands.Cog):
 		players = []
 		for userID, money in db.getAllBlackjackMoney():
 			user = self.bot.get_user(userID)
-			players.append([user.name, formatMoney(money)])
+			try:
+				players.append([user.name, formatMoney(money)])
+			except:
+				await ctx.send(f"<@205908835435544577> {userID}") #TEMP investigating bug
 
 		output = t2a(
 			header=["Player", "Money"],
