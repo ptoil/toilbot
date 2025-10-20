@@ -403,7 +403,7 @@ class Blackjack(commands.Cog):
 		guildPlayers = []
 		for userID, money in db.getAllBlackjackMoney():
 			user = ctx.guild.get_member(userID)
-			if user is not None:
+			if user is not None and money > 0:
 				guildPlayers.append([user.display_name, formatMoney(money)])
 			#else player is from another server, so dont print
 
@@ -420,10 +420,11 @@ class Blackjack(commands.Cog):
 		players = []
 		for userID, money in db.getAllBlackjackMoney():
 			user = self.bot.get_user(userID)
-			try:
-				players.append([user.name, formatMoney(money)])
-			except:
-				await ctx.send(f"<@205908835435544577> {userID}") #TEMP investigating bug
+			if money > 0:
+				try:
+					players.append([user.name, formatMoney(money)])
+				except:
+					await ctx.send(f"<@205908835435544577> {userID}") #TEMP investigating bug
 
 		output = t2a(
 			header=["Player", "Money"],
