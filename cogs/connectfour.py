@@ -163,7 +163,7 @@ class Game():
 		while self.heights[col] == -1:
 			col = random.randrange(7)
 		self.board[col][self.heights[col]] = self.currentP
-		await self.thread.send(f"{self.cmd_prefix}p{col}")
+		await self.thread.send(f"{self.cmd_prefix}p{col+1}")
 		if not await self.checkForWin(col, self.heights[col]) and not await self.checkForTie():
 			self.heights[col] -= 1
 			self.currentP = (self.currentP + 1) % 2
