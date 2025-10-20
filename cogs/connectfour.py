@@ -43,7 +43,7 @@ class Game():
 		im = Image.new("RGBA", (350, 350), (0, 0, 0, 255))
 		draw = ImageDraw.Draw(im)
 		draw.rectangle([(0, 0), (350, 300)], fill=(0, 0, 255))
-		font = ImageFont.truetype("fonts/arial.ttf", 40)
+		font = ImageFont.truetype("cogs/fonts/arial.ttf", 40)
 		for i in range(7):
 			draw.text(((i*50)+15, 300), f"{i+1}", font=font)
 		for j in range(6):
