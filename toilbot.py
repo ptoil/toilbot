@@ -39,6 +39,14 @@ async def on_command_error(ctx, error):
 		print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
 		await ctx.send(f"<@205908835435544577> pepew\n{type(error)}: {error}")
 
+@bot.event
+async def process_commands(message):
+#	if message.author.bot:
+#		return
+
+	ctx = await bot.get_context(message)
+	await bot.invoke(ctx)
+
 @bot.command(brief="moon cycle go brr")
 async def moon(ctx):
 	counterMessage = None
@@ -66,7 +74,7 @@ async def say(ctx, *strInput: str):
 
 @bot.command()
 async def sourcecode(ctx):
-	await ctx.send("https://github.com/ptoil/DiscordBots")
+	await ctx.send("https://github.com/ptoil/toilbot")
 
 @bot.command()
 @commands.is_owner()
