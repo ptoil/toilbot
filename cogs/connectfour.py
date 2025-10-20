@@ -10,10 +10,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 class Game():
 
-	def __init__(self, thread, p1, p2, bot):
+	def __init__(self, thread, p1, p2, vsBot, prefix):
 		self.thread = thread
 		self.players = (p1, p2)
-		self.vsBot = bot
+		self.vsBot = vsBot
+		self.cmd_prefix = prefix
 		self.currentP = 0
 		self.board = [[-1 for j in range(6)] for i in range(7)]
 		self.heights = [5 for i in range(7)] #index of lowest open slot in each col
@@ -159,9 +160,15 @@ class Game():
 
 	async def CPUMove(self):
 		col = random.randrange(7)
-		while self.board[col][self.heights[col]] != -1:
+		while self.heights[col] == -1:
 			col = random.randrange(7)
-		await self.drop(col)
+		self.board[col][self.heights[col]] = self.currentP
+		await self.thread.send(f"{self.cmd_prefix}p{col}")
+		if not await self.checkForWin(col, self.heights[col]) and not await self.checkForTie():
+			self.heights[col] -= 1
+			self.currentP = (self.currentP + 1) % 2
+			await self.drawBoard()
+
 
 	async def drawBoardWin(self, winningTiles):
 		im = Image.new("RGBA", (350, 300), (0, 0, 0, 255))
@@ -261,7 +268,7 @@ class ConnectFour(commands.Cog):
 		if self.challenge is not None and reaction.message == self.challenge.message:
 			if user == self.challenge.player2 and reaction.emoji == constants.EMOJI_CHECK_MARK:
 				thread = await self.challenge.message.create_thread(name=f"{self.challenge.player1.display_name} vs {self.challenge.player2.display_name}")
-				game = Game(thread, self.challenge.player1, self.challenge.player2, False)
+				game = Game(thread, self.challenge.player1, self.challenge.player2, False, self.bot.command_prefix)
 				self.games.update({thread.id : game})
 				await game.startGame()
 				self.challenge = None
@@ -271,7 +278,7 @@ class ConnectFour(commands.Cog):
 
 	async def startGameAgainstToilbot(self, ctx):
 		thread = await ctx.message.create_thread(name=f"{ctx.author.display_name} vs {self.bot.user.display_name}")
-		game = Game(thread, ctx.author, self.bot.user, True)
+		game = Game(thread, ctx.author, self.bot.user, True, self.bot.command_prefix)
 		self.games.update({thread.id : game})
 		await game.startGame()
 
