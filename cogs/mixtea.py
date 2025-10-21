@@ -283,7 +283,7 @@ class TeaExecuter:
 		sortedScores = sorted(teaGame.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
 		removeScores = []
 		for i in sortedScores:
-			if i[1].score == 0:
+			if i[1] == 0:
 				removeScores.append(i)
 		for i in removeScores:
 			sortedScores.remove(i)
@@ -301,11 +301,13 @@ class TeaExecuter:
 				elif i == 2:
 					winOutput += ":third_place: "
 				else:
-					winOutput += ":medal "
+					winOutput += ":medal: "
 				winOutput += score[0].mention + ": " + str(score[1]) + " points.\n" #TODO point scaling
 				i += 1
 
 			await self.ctx.send(winOutput)
+
+		teaGame = None
 
 	def stop(self):
 		self.gameExited = 1
@@ -425,7 +427,7 @@ class MixTea(commands.Cog):
 #		await ctx.send(teaGame.scores)
 
 	@commands.command()
-	@commands.is_owner()
+#	@commands.is_owner()
 	async def exitgame(self, ctx):
 		global teaGame
 		global teaExecute
