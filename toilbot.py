@@ -35,7 +35,7 @@ async def on_command_error(ctx, error):
 	elif isinstance(error, commands.errors.BotMissingPermissions):
 		await ctx.send(error)
 	else:
-		print('Ignoring exception in command {}:'.format(ctx.command))
+		print("Ignoring exception in command {}:".format(ctx.command))
 		print("".join(traceback.format_exception(type(error), error, error.__traceback__)))
 		await ctx.send(f"<@205908835435544577> pepew\n{type(error)}: {error}")
 
@@ -44,8 +44,12 @@ async def process_commands(message):
 #	if message.author.bot:
 #		return
 
-	ctx = await bot.get_context(message)
-	await bot.invoke(ctx)
+	if message.channel.can_send(): #this may not be the best place to put this (there may be a built in function to handle this)
+		ctx = await bot.get_context(message)
+		await bot.invoke(ctx)
+	else:
+		print("Missing permission to respond to the following message:")
+		print(f"{message.author.name}: {message.content}")
 
 @bot.command(brief="moon cycle go brr")
 async def moon(ctx):
