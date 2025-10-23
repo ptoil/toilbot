@@ -420,11 +420,8 @@ class Blackjack(commands.Cog):
 		players = []
 		for userID, money in db.getAllBlackjackMoney():
 			user = self.bot.get_user(userID)
-			if money > 0:
-				try:
-					players.append([user.name, formatMoney(money)])
-				except:
-					await ctx.send(f"<@205908835435544577> {userID}") #TEMP investigating bug
+			if money > 0 and user is not None:
+				players.append([user.name, formatMoney(money)])
 
 		output = t2a(
 			header=["Player", "Money"],
