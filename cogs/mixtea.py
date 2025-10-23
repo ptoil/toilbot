@@ -41,7 +41,7 @@ class Tea:
 	def __init__(self, ctx, bot):
 		self.ctx = ctx
 		self.bot = bot
-		self.rawWords = open("collins_scrabble.txt", "r").read()
+		self.rawWords = open("cogs/words/words.txt", "r").read()
 		self.wordsList = self.rawWords.split("\n")
 		self.phrase = ""
 		self.randWord = ""
@@ -88,7 +88,7 @@ class Tea:
 				elif i == 2:
 					winOutput += ":third_place: "
 				else:
-					winOutput += ":medal "
+					winOutput += ":medal: "
 				if score[1].score > 1:
 					winOutput += score[0].mention + " wins **" + str(score[1].score) + "** points "
 				elif score[1].score == 1:
@@ -283,7 +283,7 @@ class TeaExecuter:
 		sortedScores = sorted(teaGame.scores.items(), key = lambda kv:(kv[1], kv[0].display_name), reverse=True)
 		removeScores = []
 		for i in sortedScores:
-			if i[1].score == 0:
+			if i[1] == 0:
 				removeScores.append(i)
 		for i in removeScores:
 			sortedScores.remove(i)
@@ -301,11 +301,13 @@ class TeaExecuter:
 				elif i == 2:
 					winOutput += ":third_place: "
 				else:
-					winOutput += ":medal "
+					winOutput += ":medal: "
 				winOutput += score[0].mention + ": " + str(score[1]) + " points.\n" #TODO point scaling
 				i += 1
 
 			await self.ctx.send(winOutput)
+
+		teaGame = None
 
 	def stop(self):
 		self.gameExited = 1
@@ -425,6 +427,7 @@ class MixTea(commands.Cog):
 #		await ctx.send(teaGame.scores)
 
 	@commands.command()
+#	@commands.is_owner()
 	async def exitgame(self, ctx):
 		global teaGame
 		global teaExecute
@@ -440,4 +443,4 @@ class MixTea(commands.Cog):
 		teaExecute = None
 
 def setup(bot):
-		bot.add_cog(MixTea(bot))
+	bot.add_cog(MixTea(bot))
