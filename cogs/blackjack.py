@@ -129,6 +129,7 @@ class Game():
 
 	def __init__(self, ctx, b):
 		self.ctx = ctx
+		self.botID = ctx.bot.user.id
 		self.playerID = ctx.author.id
 		self.playerName = ctx.author.display_name
 		self.bet = b
@@ -149,7 +150,7 @@ class Game():
 		self.dealer.addCard(self.deck.drawCard())
 
 	async def start(self):
-		db.setBlackjackMoney(self.playerID, db.getBlackjackMoney(self.playerID) - self.bet)
+		db.decreaseBlackjackMoney(self.playerID, self.bet)
 
 		self.dealCards()
 
@@ -166,6 +167,7 @@ class Game():
 		elif self.dealer.score == 21:
 			await self.postDealerMsgBlackjack()
 			await self.postPlayerMsgLoseToBlackjack()
+			db.increaseBlackjackMoney(self.botID, self.bet)
 			await self.ctx.message.reply(f"The Dealer got a blackjack! You lose! You now have {formatMoney(db.getBlackjackMoney(self.playerID))}")
 		else:
 			await self.postDealerMsg()
@@ -226,6 +228,7 @@ class Game():
 			self.dealerEmbed.colour = discord.Colour.green()
 			await self.dealerMsg.edit(embed=self.dealerEmbed)
 			self.hitStay.stop()
+			db.increaseBlackjackMoney(self.botID, self.bet)
 			await self.playerMsg.edit(embed=self.playerEmbed, view=None)
 			await self.ctx.message.reply(f"You busted! The Dealer takes your bet. You now have {formatMoney(db.getBlackjackMoney(self.playerID))}")
 		else:
@@ -253,7 +256,7 @@ class Game():
 			self.dealerEmbed.description = "Dealer has busted!"
 			self.dealerEmbed.colour = discord.Colour.red()
 			self.playerEmbed.colour = discord.Colour.green()
-			await self.dealerMsg.edit(embed=self.dealerEmbed)			
+			await self.dealerMsg.edit(embed=self.dealerEmbed)
 			await self.playerMsg.edit(embed=self.playerEmbed)
 			db.increaseBlackjackMoney(self.playerID, self.bet * 2)
 			await self.ctx.message.reply(f"You win! You now have {formatMoney(db.getBlackjackMoney(self.playerID))}")
@@ -262,15 +265,16 @@ class Game():
 			if self.player.score > self.dealer.score:
 				self.dealerEmbed.colour = discord.Colour.red()
 				self.playerEmbed.colour = discord.Colour.green()
-				await self.dealerMsg.edit(embed=self.dealerEmbed)			
+				await self.dealerMsg.edit(embed=self.dealerEmbed)
 				await self.playerMsg.edit(embed=self.playerEmbed)
 				db.increaseBlackjackMoney(self.playerID, self.bet * 2)
 				await self.ctx.message.reply(f"You win! You now have {formatMoney(db.getBlackjackMoney(self.playerID))}")
 			elif self.player.score < self.dealer.score:
 				self.dealerEmbed.colour = discord.Colour.green()
 				self.playerEmbed.colour = discord.Colour.red()
-				await self.dealerMsg.edit(embed=self.dealerEmbed)			
+				await self.dealerMsg.edit(embed=self.dealerEmbed)
 				await self.playerMsg.edit(embed=self.playerEmbed)
+				db.increaseBlackjackMoney(self.botID, self.bet)
 				await self.ctx.message.reply(f"You lose! You now have {formatMoney(db.getBlackjackMoney(self.playerID))}")
 			else: # ==
 				db.increaseBlackjackMoney(self.playerID, self.bet)
