@@ -32,7 +32,7 @@ class Cobe(commands.Cog):
 			if msg is not None:
 				Brain(f"cogs/brains/cobe-{brain}.brain").learn(msg)
 
-		if self.bot.user in message.mentions and self.cooldown < time.time():
+		if self.bot.user in message.mentions and message.channel.can_send() and self.cooldown < time.time():
 			brain = db.getGuildsBrain(message.guild.id)
 			if brain is None:
 				ctx = await self.bot.get_context(message)

@@ -47,7 +47,7 @@ async def process_commands(message):
 	if message.channel.can_send(): #this may not be the best place to put this (there may be a built in function to handle this)
 		ctx = await bot.get_context(message)
 		await bot.invoke(ctx)
-	else:
+	elif message.content.startswith(bot.command_prefix) or bot.user in message.mentions:
 		print("Missing permission to respond to the following message:")
 		print(f"{message.author.name}: {message.content}")
 
