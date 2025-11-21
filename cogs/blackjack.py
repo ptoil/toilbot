@@ -222,7 +222,10 @@ class Game():
 		self.playerEmbed.add_field(name=f"Card {len(self.player.cards)}", value=self.player.cards[-1], inline="False")
 		self.playerEmbed.set_field_at(1, name="Score", value=self.player.softScore, inline="True")
 		if self.player.score > 21:
-			self.playerEmbed.description = "You busted!"
+			if self.playerID == 213013567924862977: #Shmayd
+				self.playerEmbed.description = "You ate the goon fruit!"
+			else:
+				self.playerEmbed.description = "You busted!"
 			self.playerEmbed.colour = discord.Colour.red()
 			self.dealerEmbed.description = "The dealer takes your bet"
 			self.dealerEmbed.colour = discord.Colour.green()
