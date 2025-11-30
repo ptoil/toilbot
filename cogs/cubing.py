@@ -3,6 +3,7 @@ from discord.ext import commands
 
 from pyTwistyScrambler import scrambler333, scrambler222, scrambler444, scrambler555
 import datetime
+from zoneinfo import ZoneInfo
 import pickle
 import re
 import bisect
@@ -14,10 +15,10 @@ class Cubing(commands.Cog):
 		self.bot = bot
 
 		self.lastDay = { #last day a daily scramble was created
-			"2x2" : 0,
-			"3x3" : 0,
-			"4x4" : 0,
-			"5x5" : 0,
+			"2x2" : "",
+			"3x3" : "",
+			"4x4" : "",
+			"5x5" : "",
 		}
 		self.threads = {} #threads for different cubes {"3x3", discord.Thread}
 		self.lbMessages = {} #the message in each thread that displays the leaderboard {cube, discord.Message}
@@ -91,24 +92,26 @@ class Cubing(commands.Cog):
 		if isinstance(ctx.channel, discord.Thread):
 			await ctx.send("You can't do that in a thread.")
 			return
+
+		currentDay = datetime.datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d")
 		match puzzle: #TODO i should see if i can shorten this since it'll get even bigger if i add more scrambles
 			case "2" | "2x2": 
-				if self.lastDay["2x2"] < datetime.datetime.today().day:
+				if self.lastDay["2x2"] < currentDay:
 					await self.createDailyThread(ctx, scrambler222.get_WCA_scramble(), "2x2")
 				else:
 					await ctx.send("A 2x2 scramble has already been rolled today.")
 			case "3" | "3x3":
-				if self.lastDay["3x3"] < datetime.datetime.today().day:
+				if self.lastDay["3x3"] < currentDay:
 					await self.createDailyThread(ctx, scrambler333.get_WCA_scramble(), "3x3")
 				else:
 					await ctx.send("A 3x3 scramble has already been rolled today.")
 			case "4" | "4x4":
-				if self.lastDay["4x4"] < datetime.datetime.today().day:
+				if self.lastDay["4x4"] < currentDay:
 					await self.createDailyThread(ctx, scrambler444.get_WCA_scramble(), "4x4")
 				else:
 					await ctx.send("A 4x4 scramble has already been rolled today.")
 			case "5" | "5x5":
-				if self.lastDay["5x5"] < datetime.datetime.today().day:
+				if self.lastDay["5x5"] < currentDay:
 					await self.createDailyThread(ctx, scrambler555.get_WCA_scramble(), "5x5")
 				else:
 					await ctx.send("A 5x5 scramble has already been rolled today.")
@@ -127,9 +130,9 @@ class Cubing(commands.Cog):
 		if cube in self.threads.keys():
 			await self.threads[cube].archive()
 			self.dailyScores[cube].clear()
-		self.lastDay[cube] = datetime.datetime.today().day
 
-		today = datetime.datetime.today().strftime("%Y-%m-%d")
+		today = datetime.datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d")
+		self.lastDay[cube] = today
 		self.threads[cube] = await ctx.message.create_thread(name=f"{cube} Scramble - {today}")
 		await self.threads[cube].send(scramble)
 		output = t2a(
