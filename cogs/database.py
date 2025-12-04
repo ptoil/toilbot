@@ -13,6 +13,18 @@ def initializeDatabase():
 		);
 	""")
 	cursor.execute("""
+		CREATE TABLE IF NOT EXISTS BlackjackGames (
+			GameID INTEGER PRIMARY KEY,
+			UserID INT NOT NULL,
+			GuildID INT NOT NULL,
+			UserMoney INT NOT NULL,
+			Bet INT NOT NULL,
+			UserCards TINYTEXT NOT NULL,
+			DealerCards TINYTEXT NOT NULL,
+			Deck TINYTEXT NOT NULL
+		);
+	""")
+	cursor.execute("""
 		CREATE TABLE IF NOT EXISTS Brains (
 			GuildID INT PRIMARY KEY,
 			Brain TINYTEXT
@@ -24,8 +36,6 @@ def initializeDatabase():
 		);
 	""")
 	connection.commit()
-
-initializeDatabase()
 
 
 
@@ -65,17 +75,17 @@ def setBlackjackMoney(user, money):
 def increaseBlackjackMoney(user, money):
 	cursor.execute("""
 		UPDATE Blackjack
-		SET Money = ?
+		SET Money = Money + ?
 		WHERE UserID = ?;
-	""", (getBlackjackMoney(user) + money, user))
+	""", (money, user))
 	connection.commit()
 
 def decreaseBlackjackMoney(user, money):
 	cursor.execute("""
 		UPDATE Blackjack
-		SET Money = ?
+		SET Money = Money - ?
 		WHERE UserID = ?;
-	""", (getBlackjackMoney(user) - money, user))
+	""", (money, user))
 	connection.commit()
 
 def getBlackjackCooldown(user):
@@ -105,8 +115,15 @@ def getAllBlackjackActiveCooldowns():
 def resetBlackjackCooldowns():
 	cursor.execute("""
 		UPDATE Blackjack
-		SET FreeMoneyCooldown = 0
+		SET FreeMoneyCooldown = 0;
 	""")
+	connection.commit()
+
+def recordBlackjackGame(userID, guildID, userMoney, bet, userCards, dealerCards, deck):
+	cursor.execute("""
+		INSERT INTO BlackjackGames (UserID, GuildID, UserMoney, Bet, UserCards, DealerCards, Deck)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	""", (userID, guildID, userMoney, bet, userCards, dealerCards, deck))
 	connection.commit()
 
 

@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import traceback
 import asyncio
 import cogs.constants as constants
+import cogs.database as db
 import sqlite3
 
 load_dotenv()
@@ -15,7 +16,10 @@ bot = commands.Bot(command_prefix=PREFIX, case_insensitive=True, intents=discord
 
 @bot.event
 async def on_connect():
+#	if bot.auto_sync_commands: #might need to implement ApplicationCommand in the future
+#		await bot.sync_commands()
 	bot.printDebugMessages = False
+	db.initializeDatabase()
 	print(f"{bot.user} has connected to Discord")
 
 @bot.event

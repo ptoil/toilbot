@@ -24,15 +24,19 @@ class Card():
 		else:
 			return self.rank
 
+	def getSaveString(self):
+		ranks = "-A23456789TJQK"
+		return ranks[self.rank] + self.suit[0]
+
 	def __str__(self):
 		if self.rank >= 2 and self.rank <= 10:
-			return str(self.rank) + " of " + self.suit
+			return f"{self.rank} of {self.suit}"
 		else:
 			match self.rank:
-				case 1:  return "Ace of " + self.suit
-				case 11: return "Jack of " + self.suit
-				case 12: return "Queen of " + self.suit
-				case 13: return "King of " + self.suit
+				case 1:  return f"Ace of {self.suit}"
+				case 11: return f"Jack of {self.suit}"
+				case 12: return f"Queen of {self.suit}"
+				case 13: return f"King of {self.suit}"
 				case _:  return "Not a Card"
 
 
@@ -53,12 +57,10 @@ class Deck():
 		return c
 
 	def shuffle(self):
-		for x in range(2): #shuffle loops
-			for i in range(len(self.deck)):
-				r = random.randint(0, len(self.deck)-1)
-				c = self.deck[i]
-				self.deck[i] = self.deck[r]
-				self.deck[r] = c
+		random.shuffle(self.deck)
+
+	def getSaveString(self):
+		return ''.join([card.getSaveString() for card in self.deck])
 
 	def __str__(self):
 		out = ""
@@ -97,6 +99,9 @@ class Player():
 		else:
 			self.softScore = str(self.score)
 
+	def getSaveString(self):
+		return ''.join([card.getSaveString() for card in self.cards])
+
 
 class HitStay(discord.ui.View):
 	def __init__(self, g):
@@ -133,6 +138,7 @@ class Game():
 		self.playerID = ctx.author.id
 		self.playerName = ctx.author.display_name
 		self.bet = b
+		self.playerStartingMoney = db.getBlackjackMoney(self.playerID)
 		self.player = Player()
 		self.dealer = Player()
 		self.playerEmbed = None
@@ -159,16 +165,19 @@ class Game():
 			await self.postPlayerMsgBlackjack()
 			db.increaseBlackjackMoney(self.playerID, self.bet)
 			await self.ctx.message.reply(f"It's a tie! Your bet has been returned to you. You have {formatMoney(db.getBlackjackMoney(self.playerID))}")
+			self.recordGame()
 		elif self.player.score == 21:
 			await self.postDealerMsgLoseToBlackjack()
 			await self.postPlayerMsgBlackjack()
 			db.increaseBlackjackMoney(self.playerID, self.bet * 2.5)
 			await self.ctx.message.reply(f"Blackjack!!! You win {formatMoney(self.bet * 1.5)}! You now have {formatMoney(db.getBlackjackMoney(self.playerID))}")
+			self.recordGame()
 		elif self.dealer.score == 21:
 			await self.postDealerMsgBlackjack()
 			await self.postPlayerMsgLoseToBlackjack()
 			db.increaseBlackjackMoney(self.botID, self.bet)
 			await self.ctx.message.reply(f"The Dealer got a blackjack! You lose! You now have {formatMoney(db.getBlackjackMoney(self.playerID))}")
+			self.recordGame()
 		else:
 			await self.postDealerMsg()
 			await self.postPlayerMsg()
@@ -234,6 +243,7 @@ class Game():
 			db.increaseBlackjackMoney(self.botID, self.bet)
 			await self.playerMsg.edit(embed=self.playerEmbed, view=None)
 			await self.ctx.message.reply(f"You busted! The Dealer takes your bet. You now have {formatMoney(db.getBlackjackMoney(self.playerID))}")
+			self.recordGame()
 		else:
 #			await self.playerMsg.edit(embed=self.playerEmbed) #using this instead of the below causes "This interaction failed"
 			await interaction.response.edit_message(embed=self.playerEmbed) 
@@ -255,6 +265,7 @@ class Game():
 			self.dealerEmbed.set_field_at(1, name="Score", value=self.dealer.softScore, inline=True)
 			await self.dealerMsg.edit(embed=self.dealerEmbed)
 		await asyncio.sleep(1)
+
 		if self.dealer.score > 21:
 			self.dealerEmbed.description = "Dealer has busted!"
 			self.dealerEmbed.colour = discord.Colour.red()
@@ -282,12 +293,21 @@ class Game():
 			else: # ==
 				db.increaseBlackjackMoney(self.playerID, self.bet)
 				await self.ctx.message.reply(f"It's a tie! Your bet has been returned to you. You have {formatMoney(db.getBlackjackMoney(self.playerID))}")
+		self.recordGame()
 
+	def recordGame(self):
+		db.recordBlackjackGame(self.playerID, self.ctx.guild.id, self.playerStartingMoney, self.bet, self.player.getSaveString(), self.dealer.getSaveString(), self.deck.getSaveString())
 
 class Blackjack(commands.Cog):
 
 	def __init__(self, bot):
 		self.bot = bot
+
+	@commands.command()
+	async def printdeck(self, ctx):
+		deck = Deck()
+		deck.shuffle()
+		await ctx.send(deck.getSaveString())
 
 	@commands.command(aliases=["bj"])
 	async def blackjack(self, ctx, *, bet):
@@ -394,7 +414,7 @@ class Blackjack(commands.Cog):
 			db.decreaseBlackjackMoney(ctx.author.id, roundedAmount)
 			db.increaseBlackjackMoney(member.id, roundedAmount)
 			output += f"{ctx.author.mention} now has {formatMoney(db.getBlackjackMoney(ctx.author.id))}\n{member.mention} now has {formatMoney(db.getBlackjackMoney(member.id))}"
-			await ctx.send(output)
+			await ctx.message.reply(output)
 
 	@donate.error
 	async def donate_error(self, ctx, error):
