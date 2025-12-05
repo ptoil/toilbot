@@ -14,7 +14,7 @@ class Roles(commands.Cog):
 			if color[0] == '#':
 				color = color[1:]
 			if name is None:
-				name = "#" + color
+				name = "#" + color.zfill(6)
 			hexNum = int(color, 16)
 			if hexNum > 0xffffff:
 				await ctx.message.reply("Hex value too high! Enter a hex value between #000000 and #FFFFFF")
@@ -31,19 +31,31 @@ class Roles(commands.Cog):
 
 		for role in ctx.author.roles:
 			if role.id in db.getAllRoles():
-				db.deleteRole(role.id)
-				await role.delete()
+				try:
+					await role.delete()
+					db.deleteRole(role.id)
+				except:
+					await ctx.message.reply("delete error")
 
-		newRole = await ctx.guild.create_role(name=name, color=discord.Color(hexNum))
+		try:
+			newRole = await ctx.guild.create_role(name=name, color=discord.Color(hexNum))
+			db.addRole(newRole.id)
+		except:
+			await ctx.message.reply("create_role error")
 		botMember = ctx.guild.get_member(self.bot.user.id)
 		botRole = botMember.roles[-1] #will return the bots top role, which should be the integration role if no other higher roles were added
 		botRoleIndex = ctx.guild.roles.index(botRole)
 #		usersHighestRole = ctx.guild.roles.index(ctx.author.roles[-1])
 #		print(f"usersHighestRole index: {usersHighestRole}, botRole index: {botRoleIndex}")
-		await ctx.guild.edit_role_positions(positions={newRole : botRoleIndex-1}) #move the color role to below the bot role (should be higher than any other custom role and therefore is the displayed color)
-		await ctx.author.add_roles(newRole)
-		await ctx.message.reply("Role added")
-		db.addRole(newRole.id)
+		try:
+			await ctx.guild.edit_role_positions(positions={newRole : botRoleIndex-1}) #move the color role to below the bot role (should be higher than any other custom role and therefore is the displayed color)
+		except:
+			await ctx.message.reply("edit_role_positions error")
+		try:
+			await ctx.author.add_roles(newRole)
+			await ctx.message.reply("Role added")
+		except:
+			await ctx.message.reply("add_roles error")
 
 	@setcolor.error
 	async def setcolor_error(self, ctx, error):
