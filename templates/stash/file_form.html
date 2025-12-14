@@ -10,14 +10,10 @@
 		</style>
 	</head>
 	<body>
-		<a href="create/">Upload file</a>
-		<h1>Files</h1>
-		<ul>
-		{% for file in object_list %}
-		    <li><a href="view/{{ file.id }}">{{ file }}</a></li>
-		{% empty %}
-		    <li>No files yet.</li>
-		{% endfor %}
-		</ul>
+		<form method="post" enctype="multipart/form-data">
+			{% csrf_token %}
+			{{ form.as_p }}
+			<input type="submit" value="Save">
+		</form>
 	</body>
 </html>
