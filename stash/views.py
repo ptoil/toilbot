@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 
 from stash.models import File
 
@@ -15,4 +15,8 @@ class FileDetailView(DetailView):
 
 class FileCreateView(CreateView):
 	model = File
-	fields = ["file", "description"]
+	fields = ["file", "description", "source", "nsfw"]
+
+class FileUpdateView(UpdateView):
+	model = File
+	fields = ["file", "description", "source", "nsfw"]

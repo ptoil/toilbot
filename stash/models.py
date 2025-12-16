@@ -7,10 +7,10 @@ class File(models.Model):
 	file = models.FileField(upload_to="media/", blank=True)
 	description = models.TextField(blank=True)
 #	added_by = models.ForeignKey()
-#	created = models.DateTimeField(auto_now_add=True)
-#	modified = models.DateTimeField(auto_now=True)
-#	source = models.CharField(blank=True)
-#	nsfw = models.BooleanField()
+	created = models.DateTimeField(auto_now_add=True)
+	modified = models.DateTimeField(auto_now=True)
+	source = models.CharField(blank=True)
+	nsfw = models.BooleanField(default=False)
 #	related = models.JSONField()
 
 	def get_absolute_url(self):

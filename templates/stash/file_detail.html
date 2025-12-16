@@ -12,7 +12,10 @@
 	<body>
 		<a href="/stash/">Back to list</a>
 		<h1>{{ object }}</h1>
-		<p>{{ object.description }}</p>
 		<img src="{{ object.file.url }}">
+		<p>Description: {{ object.description }}</p>
+		<p>Created: {{ object.created }}</p>
+		<p>Source: {{ object.source }}</p>
+		<p>NSFW: {{ object.nsfw }}</p>
 	</body>
 </html>

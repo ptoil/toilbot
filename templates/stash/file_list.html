@@ -14,10 +14,38 @@
 		<h1>Files</h1>
 		<ul>
 		{% for file in object_list %}
-		    <li><a href="view/{{ file.id }}">{{ file }}</a></li>
+			<li><a href="view/{{ file.id }}">{{ file }}</a></li>
 		{% empty %}
-		    <li>No files yet.</li>
+			<li>No files yet.</li>
 		{% endfor %}
 		</ul>
+		{% load socialaccount %} 
+		{% load static %}
+
+		<div class="collapse navbar-collapse" id="navbarNav">
+			<ul class="navbar-nav ms-auto align-items-center">
+				
+				{% if user.is_authenticated %}
+					<li class="nav-item">
+						<span class="nav-link text-white">
+							Logged in as <strong>{{ user.username }}</strong>
+						</span>
+					</li>
+					<li class="nav-item ms-2">
+						<a href="{% url 'account_logout' %}" class="btn btn-outline-light btn-sm">
+							Logout
+						</a>
+					</li>
+
+				{% else %}
+					<li class="nav-item">
+						<a href="{% provider_login_url 'discord' %}" class="btn btn-discord">
+							Login with Discord
+						</a>
+					</li>
+				{% endif %}
+				
+			</ul>
+		</div>
 	</body>
 </html>
