@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+from dotenv import load_dotenv
 from pathlib import Path
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +28,7 @@ SECRET_KEY = "django-insecure-a-g5h!c$raxdg!ouwdb#!rhs*=jj8o=ow-bsyuh=ugfu#m&_pb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["34.133.136.94", "toilbot.run"]
 
 
 # Application definition
@@ -67,7 +70,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                'django.template.context_processors.request',
+                "django.template.context_processors.request",
             ],
         },
     },
@@ -106,9 +109,20 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',           #default
-    'allauth.account.auth_backends.AuthenticationBackend', #allauth
+    "django.contrib.auth.backends.ModelBackend",           #default
+    "allauth.account.auth_backends.AuthenticationBackend", #allauth
 ]
+
+SOCIALACCOUNT_PROVIDERS = {
+	"discord" : {
+		"APP" : {
+			"client_id" : os.getenv("CLIENT"),
+			"secret" : os.getenv("SECRET"),
+		},
+		"SCOPE" : ["identify"],
+#		"AUTH_PARAMS" : {"prompt" : "none"},
+	}
+}
 
 
 # Internationalization
@@ -116,7 +130,7 @@ AUTHENTICATION_BACKENDS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Chicago"
 
 USE_I18N = True
 
@@ -127,3 +141,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+MEDIA_URL = "media/"
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
