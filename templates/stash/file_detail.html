@@ -14,8 +14,10 @@
 		<h1>{{ object }}</h1>
 		<img src="{{ object.file.url }}">
 		<p>Description: {{ object.description }}</p>
-		<p>Created: {{ object.created }}</p>
-		<p>Source: {{ object.source }}</p>
+		<p>Added By: {{ object.added_by }}</p>
 		<p>NSFW: {{ object.nsfw }}</p>
+		<p>Source: {{ object.source }}</p>
+		<p>Created: {{ object.created }}</p>
+		<p>Modified: {{ object.modified }}</p>
 	</body>
 </html>

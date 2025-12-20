@@ -3,6 +3,7 @@
 audio/
 brains/
 media/
+static/
 *.db
 *.sqlite3
 __pycache__/
