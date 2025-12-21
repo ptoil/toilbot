@@ -25,7 +25,7 @@ def get_frame_from_video(source_path):
 
 def video_source_generator(source, **kwargs):
 
-	if not source.name.lower().endswith((".mp4", ".mkv", ".avi", ".mov", ".webm")):
+	if not source.name.lower().endswith((".mp4", ".mkv", ".avi", ".mov", ".webm", ".gif")):
 		return None
 
 	if not shutil.which("ffmpeg"):
