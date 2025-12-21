@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    "allauth.socialaccount.providers.discord"
+    "allauth.socialaccount.providers.discord",
+    "easy_thumbnails",
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware"
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -147,3 +148,20 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 MEDIA_URL = "media/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
+# Thumbnails
+# easy-thumbnails
+
+THUMBNAIL_BASEDIR = "thumbnails"
+
+THUMBNAIL_SOURCE_GENERATORS = [
+    "stash.utils.video_source_generator",
+    "easy_thumbnails.source_generators.pil_image",
+]
+
+THUMBNAIL_ALIASES = {
+    '' : {
+        "preview" : {"size" : (150, 150), "crop" : True}
+    }
+}
