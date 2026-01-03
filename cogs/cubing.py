@@ -157,7 +157,7 @@ class Cubing(commands.Cog):
 				await ctx.message.reply("You've already submitted a time.")
 				return		
 
-		timeMatch = re.search(r"(?:(\d{1,2}):)?(\d{2})\.(\d{1,3})", time)
+		timeMatch = re.search(r"(?:(\d{1,2}):)?(\d{1,2})\.(\d{1,3})", time)
 		if timeMatch:
 			solveTime = (int(timeMatch.group(1) or 0) * 60) + int(timeMatch.group(2)) + float("0." + timeMatch.group(3))
 		else:
@@ -173,8 +173,11 @@ class Cubing(commands.Cog):
 		scoresArr = []
 		for user, timeNum, timeStr in self.dailyScores[cube]:
 			minutes      = int(timeNum // 60)
-			seconds      = int(timeNum % 60)
-			milliseconds = timeStr.split('.')[1]
+			if minutes:
+				seconds  = str(int(timeNum % 60)).zfill(2)
+			else:
+				seconds  = str(int(timeNum % 60))
+			milliseconds = str(timeStr.split('.')[1]).ljust(3, '0')
 			if minutes:
 				timeStr = f"{minutes}:{seconds}.{milliseconds}"
 			else:
