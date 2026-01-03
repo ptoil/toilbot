@@ -137,7 +137,7 @@ class Cubing(commands.Cog):
 			alignments=[Alignment.LEFT, Alignment.RIGHT]
 		)
 		self.lbMessages[cube] = await self.threads[cube].send(f"```\n{output}\n```")
-		await self.threads[cube].send("Submit times with `.submit`")
+		await self.threads[cube].send(f"Submit times with `{self.bot.command_prefix}submit`")
 
 
 	@commands.command()
