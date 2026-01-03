@@ -70,22 +70,27 @@ class Cubing(commands.Cog):
 
 
 
-
+	def generateScramble(self, puzzle):
+		match puzzle:
+			case "2" | "2x2":
+				return scrambler222.get_WCA_scramble()
+			case "3" | "3x3":
+				return scrambler333.get_WCA_scramble()
+			case "4" | "4x4":
+				return scrambler444.get_WCA_scramble()
+			case "5" | "5x5":
+				return scrambler555.get_WCA_scramble()
+			case _:
+				return None
 
 
 	@commands.command()
 	async def scramble(self, ctx, puzzle):
-		match puzzle:
-			case "2" | "2x2":
-				await ctx.send(scrambler222.get_WCA_scramble())
-			case "3" | "3x3":
-				await ctx.send(scrambler333.get_WCA_scramble())
-			case "4" | "4x4":
-				await ctx.send(scrambler444.get_WCA_scramble())
-			case "5" | "5x5":
-				await ctx.send(scrambler555.get_WCA_scramble())
-			case _:
-				await ctx.send("List of supported scrambles: 2x2, 3x3, 4x4, 5x5")
+		scramble = self.generateScramble(puzzle)
+		if scramble:
+			await ctx.send(scramble)
+		else:
+			await ctx.send("List of supported scrambles: 2x2, 3x3, 4x4, 5x5")
 
 
 	@commands.command()
@@ -95,29 +100,17 @@ class Cubing(commands.Cog):
 			return
 
 		currentDay = datetime.datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d")
-		match puzzle: #TODO i should see if i can shorten this since it'll get even bigger if i add more scrambles
-			case "2" | "2x2": 
-				if self.lastDay["2x2"] < currentDay:
-					await self.createDailyThread(ctx, scrambler222.get_WCA_scramble(), "2x2")
-				else:
-					await ctx.send("A 2x2 scramble has already been rolled today.")
-			case "3" | "3x3":
-				if self.lastDay["3x3"] < currentDay:
-					await self.createDailyThread(ctx, scrambler333.get_WCA_scramble(), "3x3")
-				else:
-					await ctx.send("A 3x3 scramble has already been rolled today.")
-			case "4" | "4x4":
-				if self.lastDay["4x4"] < currentDay:
-					await self.createDailyThread(ctx, scrambler444.get_WCA_scramble(), "4x4")
-				else:
-					await ctx.send("A 4x4 scramble has already been rolled today.")
-			case "5" | "5x5":
-				if self.lastDay["5x5"] < currentDay:
-					await self.createDailyThread(ctx, scrambler555.get_WCA_scramble(), "5x5")
-				else:
-					await ctx.send("A 5x5 scramble has already been rolled today.")
-			case _:
-				await ctx.send("List of supported scrambles: 2x2, 3x3, 4x4, 5x5")
+		if 'x' not in puzzle:
+			puzzle = puzzle + 'x' + puzzle
+
+		if puzzle not in self.lastDay.keys():
+			await ctx.send("List of supported scrambles: 2x2, 3x3, 4x4, 5x5")
+			return
+
+		if self.lastDay[puzzle] < currentDay:
+			await self.createDailyThread(ctx, self.generateScramble(puzzle), puzzle)
+		else:
+			await ctx.send(f"A {puzzle} scramble has already been rolled today.")
 
 
 	@scramble.error
