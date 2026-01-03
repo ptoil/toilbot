@@ -22,7 +22,7 @@ class Cubing(commands.Cog):
 		}
 		self.threads = {} #threads for different cubes {"3x3", discord.Thread}
 		self.lbMessages = {} #the message in each thread that displays the leaderboard {cube, discord.Message}
-		self.dailyScores = {} #dict holding sorted lists holding tuples {cube, [(user, float(time), str(time)]} #saving the input string to eliminate rounding issues on LB
+		self.dailyScores = {} #dict holding sorted lists holding tuples {cube, [(user, float(time)]}
 #		self.scrambleQueue = []
 #		self.queueEnjoyers = {}
 
@@ -87,6 +87,7 @@ class Cubing(commands.Cog):
 			case _:
 				await ctx.send("List of supported scrambles: 2x2, 3x3, 4x4, 5x5")
 
+
 	@commands.command()
 	async def dailyscramble(self, ctx, puzzle):
 		if isinstance(ctx.channel, discord.Thread):
@@ -118,6 +119,7 @@ class Cubing(commands.Cog):
 			case _:
 				await ctx.send("List of supported scrambles: 2x2, 3x3, 4x4, 5x5")
 
+
 	@scramble.error
 	@dailyscramble.error
 	async def scramble_error(self, ctx, error):
@@ -125,6 +127,7 @@ class Cubing(commands.Cog):
 			await ctx.message.reply("Enter the cube you'd like a scramble for.")
 		else:
 			pass
+
 
 	async def createDailyThread(self, ctx, scramble, cube):
 		if cube in self.threads.keys():
@@ -143,6 +146,7 @@ class Cubing(commands.Cog):
 		self.lbMessages[cube] = await self.threads[cube].send(f"```\n{output}\n```")
 		await self.threads[cube].send("Submit times with `.submit`")
 
+
 	@commands.command()
 	async def submit(self, ctx, time):
 		cube = ""
@@ -155,32 +159,33 @@ class Cubing(commands.Cog):
 		if cube not in self.dailyScores.keys():
 			self.dailyScores.update({cube : []})
 
-		alreadySubmitted = False
 		for user in self.dailyScores[cube]:
 			if user[0].id == ctx.author.id:
-				alreadySubmitted = True
-		if alreadySubmitted:
-			await ctx.message.reply("You've already submitted a time.")
-			return
+				await ctx.message.reply("You've already submitted a time.")
+				return		
 
-		if re.search(r"\d{1,2}:\d{2}\.\d{2}", time):
-			timeArr = re.split("[:.]", time)
-			solveTime = (60 * int(timeArr[0])) + int(timeArr[1]) + (.01 * int(timeArr[2]))
-		elif re.search(r"\d{1,2}\.\d{2}", time):
-			timeArr = re.split("[.]", time)
-			solveTime = int(timeArr[0]) + (.01 * int(timeArr[1]))
+		timeMatch = re.findall(r"(?:(\d{1,2}):)?(\d{2})\.(\d{1,3})", time)[0]
+		if timeMatch:
+			solveTime = (int(timeMatch[0] or 0) * 60) + int(timeMatch[1]) + float("0." + timeMatch[2])
 		else:
 			await ctx.message.reply("Invalid input. A valid time looks like `m:ss.ff` or `ss.ff`. For example: `15.79`")
 			return
 
-		bisect.insort_left(self.dailyScores[cube], (ctx.author, solveTime, time), key=lambda x: x[1]) #insert sorted by solve time
+		bisect.insort_left(self.dailyScores[cube], (ctx.author, solveTime), key=lambda x: x[1]) #insert sorted by solve time
 		await ctx.message.reply("Time recorded.")
 		await self.updateLeaderboard(cube)
 		
 
 	async def updateLeaderboard(self, cube):
 		scoresArr = []
-		for user, timeNum, timeStr in self.dailyScores[cube]:
+		for user, time in self.dailyScores[cube]:
+			minutes      = int(time // 60)
+			seconds      = int(time % 60)
+			milliseconds = int(time % 1 * 1000)
+			if minutes:
+				timeStr = f"{minutes}:{seconds}.{milliseconds}"
+			else:
+				timeStr = f"{seconds}.{milliseconds}"
 			scoresArr.append([user.name, timeStr])
 		output = t2a(
 			header=["User", "Time"],
@@ -190,6 +195,7 @@ class Cubing(commands.Cog):
 		)
 		await self.lbMessages[cube].edit(f"```\n{output}\n```")
 		
+
 	@commands.command(hidden=True)
 	@commands.is_owner()
 	async def deltime(self, ctx, member: discord.Member):
