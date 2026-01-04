@@ -5,15 +5,21 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class File(models.Model):
-
+	
+	#User editable
 	file = models.FileField() #move to temp folder if model is deleted (acts as recycle bin, isnt fully deleted until admin confirms)
 	description = models.TextField(blank=True)
-	added_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-	created = models.DateTimeField(auto_now_add=True)
-	modified = models.DateTimeField(auto_now=True)
 	source = models.CharField(blank=True)
 	nsfw = models.BooleanField(default=False, verbose_name="NSFW")
 #	related = models.JSONField()
+
+	#Automatic
+	created = models.DateTimeField(auto_now_add=True)
+	modified = models.DateTimeField(auto_now=True)
+	added_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+	file_size_bytes = models.PositiveIntegerField()
+	file_video_length = models.DurationField()
+
 
 	def file_type(self):
 		extension = os.path.splitext(self.file.name)[1].lower()

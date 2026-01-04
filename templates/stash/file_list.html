@@ -21,8 +21,7 @@
 		}
 	</style>
 </head>
-<body>
-	
+<body class="d-flex flex-column min-vh-100 bg-body" data-bs-theme="dark">
 	<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
 		<div class="container-fluid">
 			<ul class="navbar-nav me-auto text-white">
@@ -49,24 +48,29 @@
 			{% endif %}
 		</div>
 	</nav>
-	<div class="container-xxl pt-5">
-		<ul>
+	
+	<div class="container-xxl flex-grow-1 text-bg-body pt-5">
+		<div class="list-group-dark">
 		{% for file in object_list %}
-			<li>
-				{% load thumbnail %}
-				{% if file.file_type == "visual" %}
-					<img src="{% thumbnail file.file 'preview' %}" class="img-fluid">
-				{% elif file.file_type == "audio" %}
-					<i class="fas fa-music fa-5x"></i>
-				{% elif file.file_type == "other" %}
-					<i class="fas fa-file fa-5x"></i>
-				{% endif %}
-				<a href="view/{{ file.id }}">{{ file }}</a>
-			</li>
+			<div class="list-group-item">
+				<a href="view/{{ file.id }}">
+				<div>
+					{% load thumbnail %}
+					{% if file.file_type == "visual" %}
+						<img src="{% thumbnail file.file 'preview' %}" class="img-fluid">
+					{% elif file.file_type == "audio" %}
+						<i class="fas fa-music fa-5x"></i>
+					{% elif file.file_type == "other" %}
+						<i class="fas fa-file fa-5x"></i>
+					{% endif %}
+					<span class="text-white">{{ file }}</span>
+				</div>
+				</a>
+			</div>
 		{% empty %}
 			<li>No files yet.</li>
 		{% endfor %}
-		</ul>
+		</div>
 	</div>
 </body>
 </html>
