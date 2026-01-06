@@ -19,10 +19,32 @@
 			background-color: #4752c4; 
 			color: white;
 		}
+
+		.thumbnail-container {
+			width: 150px;
+		}
+
+		.action-button-cell {
+			transition: background-color .2s ease-in-out, color .2s ease-in-out;
+		}
+
+		.action-button-cell:hover {
+			background-color: rgba(255, 255, 255, 0.1);
+			color: #fff;
+		}
+
+		.action-button-cell a {
+			display: flex;
+			width: 100%;
+			height: 100%;
+			align-items: center;
+			justify-content: center;
+			color: inherit;
+		}
 	</style>
 </head>
 <body class="d-flex flex-column min-vh-100" data-bs-theme="dark">
-	<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+	<nav class="navbar navbar-expand-sm border-bottom">
 		<div class="container-fluid">
 			<ul class="navbar-nav me-auto">
 				<li class="nav-item">
@@ -50,57 +72,51 @@
 	</nav>
 	
 	<div class="container-xxl flex-grow-1 pt-5">
-		<div class="row">
-			<div class="col">
-			{% for file in object_list %}
-				<a href="view/{{ file.id }}" class="text-decoration-none">
-				{% if file.nsfw %}
-					<div class="card mb-2 border-danger">
-				{% else %}
-					<div class="card mb-2 border-secondary">
-				{% endif %}
-						<div class="row">
-							<div class="col-2 text-secondary-emphasis">
-								{% load thumbnail %}
-								{% if file.file_type == "visual" %}
-									<img src="{% thumbnail file.file 'preview' %}" class="img-fluid">
-								{% elif file.file_type == "audio" %}
-									<i class="fas fa-music fa-5x"></i>
-								{% elif file.file_type == "other" %}
-									<i class="fas fa-file fa-5x"></i>
-								{% endif %}
-							</div>
-							<div class="col-8">
-								<div class="card-body">
-									<div class="row">
-										<div class="col-8">
-											<h5 class="card-title">{{ file }}</h5>
-											<p class="card-text text-muted small">{{ file.description }}</p>
-										</div>
-										<div class="col-4">
-										{% if file.nsfw %}
-											<p class="card-text">NSFW</p>
-										{% endif %}
-										</div>
-									</div>
+	{% for file in object_list %}
+		<div class="card mb-2 {% if file.nsfw %}border-danger{% else %}border-secondary{% endif %} overflow-hidden">
+			<div class="row g-0 h-100" style="min-height: 150px">
+				<a href="view/{{ file.id }}" class="col-10 d-flex text-decoration-none text-reset action-button-cell">
+					<div class="thumbnail-container d-flex align-items-center justify-content-center">
+						{% load thumbnail %}
+						{% if file.file_type == "visual" %}
+							<img src="{% thumbnail file.file 'preview' %}" class="img-fluid">
+						{% elif file.file_type == "audio" %}
+							<i class="fas fa-music fa-4x"></i>
+						{% elif file.file_type == "other" %}
+							<i class="fas fa-file fa-4x"></i>
+						{% endif %}
+					</div>
+					<div class="flex-grow-1">
+						<div class="card-body">
+							<div class="row">
+								<div class="col-8">
+									<h5 class="card-title">{{ file }}</h5>
+									<p class="card-text text-muted small">{{ file.description }}</p>
 								</div>
-							</div>
-							<div class="col-1 border-start">
-								<button class="btn">
-									<i class="fas fa-download"></i>
-								</button>
-							</div>
-							<div class="col-1 border-start">
-								<i class="fas fa-link"></i>
+								<div class="col-4 text-end">
+								{% if file.nsfw %}
+									<span class="badge bg-danger">NSFW</span>
+								{% endif %}
+								</div>
 							</div>
 						</div>
 					</div>
 				</a>
-			{% empty %}
-				<p>No files yet.</p>
-			{% endfor %}
+				<div class="col-1 border-start d-flex justify-content-center action-button-cell">
+					<a href="temp/">
+						<i class="fas fa-download fa-lg"></i>
+					</a>
+				</div>
+				<div class="col-1 border-start d-flex justify-content-center action-button-cell">
+					<a href="temp/">
+						<i class="fas fa-link fa-lg"></i>
+					</a>
+				</div>
 			</div>
 		</div>
+	{% empty %}
+		<p>No files yet.</p>
+	{% endfor %}
 	</div>
 </body>
 </html>

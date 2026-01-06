@@ -18,6 +18,8 @@ class File(models.Model):
 	created = models.DateTimeField(auto_now_add=True)
 	modified = models.DateTimeField(auto_now=True)
 	added_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+#	link = models.URLField()
+#	link_updated = models.DateTimeField()
 #	file_size_bytes = models.PositiveIntegerField()
 #	file_video_length = models.DurationField()
 
