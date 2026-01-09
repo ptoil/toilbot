@@ -9,7 +9,7 @@
 
 		</style>
 	</head>
-	<body>
+	<body class="d-flex flex-column min-vh-100" data-bs-theme="dark">
 		<form method="post" enctype="multipart/form-data">
 			{% csrf_token %}
 			{{ form.as_p }}
