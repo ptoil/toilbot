@@ -9,19 +9,19 @@
 	{% for file in object_list %}
 		<div class="card mb-2 {% if file.nsfw %}border-danger{% else %}border-secondary{% endif %} overflow-hidden">
 			<div class="row g-0 h-100" style="min-height: 150px">
-				<a href="view/{{ file.id }}" class="col-10 d-flex text-decoration-none text-reset action-button-cell">
-					<div class="thumbnail-container d-flex align-items-center justify-content-center">
-						{% load thumbnail %}
-						{% if file.file_type == "image" or file.file_type == "video" %}
-							<img src="{% thumbnail file.file 'preview' %}" class="img-fluid">
-						{% elif file.file_type == "audio" %}
-							<i class="fas fa-music fa-4x"></i>
-						{% elif file.file_type == "other" %}
-							<i class="fas fa-file fa-4x"></i>
-						{% endif %}
-					</div>
-					<div class="flex-grow-1">
-						<div class="card-body">
+				<div class="col-10 d-flex text-decoration-none text-reset">
+					<a href="view/{{ file.id }}" class="action-button-cell">
+						<div class="thumbnail-container d-flex align-items-center justify-content-center">
+							{% load thumbnail %}
+							{% if file.file_type == "image" or file.file_type == "video" %}
+								<img src="{% thumbnail file.file 'preview' %}" class="img-fluid">
+							{% elif file.file_type == "audio" %}
+								<i class="fas fa-music fa-4x"></i>
+							{% elif file.file_type == "other" %}
+								<i class="fas fa-file fa-4x"></i>
+							{% endif %}
+						</div>
+						<div class="card-body flex-grow-1">
 							<div class="row">
 								<div class="col-8">
 									<h5 class="card-title">{{ file }}</h5>
@@ -34,17 +34,21 @@
 								</div>
 							</div>
 						</div>
-					</div>
-				</a>
-				<div class="col-1 border-start d-flex justify-content-center action-button-cell">
-					<a href="temp/">
-						<i class="fas fa-download fa-lg"></i>
 					</a>
 				</div>
-				<div class="col-1 border-start d-flex justify-content-center action-button-cell">
-					<a href="temp/">
-						<i class="fas fa-link fa-lg"></i>
+				<div class="col-2 border-start d-flex flex-column">
+					<a href="{{ file.file.url }}" download class="border-bottom action-button-cell">
+						<i class="fas fa-download fa-lg"></i>
 					</a>
+					<button onclick="copyLink('{{ file.link }}')" class="btn action-button-cell">
+						<i class="fas fa-link fa-lg"></i>
+					</button>
+					<script type="text/javascript">
+						function copyLink(link) {
+							navigator.clipboard.writeText(link);
+							alert("Copied: " + link)
+						}
+					</script>
 				</div>
 			</div>
 		</div>
