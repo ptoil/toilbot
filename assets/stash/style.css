@@ -1,42 +1,44 @@
-/*
-		body {
-			background-color: #121212;
-		}
 
-		.card {
-			background-color: #1e1e1e;
-		}
-		*/
-		.btn-discord {
-			background-color: #5865F2; /*Blurple*/
-			color: white;
-			font-weight: 500;
-			border: none;
-		}
+body {
+	background-color: #121212;
+	color: #dee2e6;
+}
 
-		.btn-discord:hover {
-			background-color: #4752c4; 
-			color: white;
-		}
+.card {
+	background-color: #1e1e1e;
+	color: #dee2e6;
+}
 
-		.thumbnail-container {
-			width: 150px;
-		}
+.btn-discord {
+	background-color: #5865F2; /*Blurple*/
+	color: white;
+	font-weight: 500;
+	border: none;
+}
 
-		.action-button-cell {
-			transition: background-color .2s ease-in-out, color .2s ease-in-out;
-		}
+.btn-discord:hover {
+	background-color: #4752c4; 
+	color: white;
+}
 
-		.action-button-cell:hover {
-			background-color: rgba(255, 255, 255, 0.1);
-			color: #fff;
-		}
+.thumbnail-container {
+	width: 150px;
+}
 
-		.action-button-cell a {
-			display: flex;
-			width: 100%;
-			height: 100%;
-			align-items: center;
-			justify-content: center;
-			color: inherit;
-		}
+.action-button-cell {
+	transition: background-color .2s ease-in-out, color .2s ease-in-out;
+}
+
+.action-button-cell:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+	color: #ffffff;
+}
+
+.action-button-cell a {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	align-items: center;
+	justify-content: center;
+	color: inherit;
+}
