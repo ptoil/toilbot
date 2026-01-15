@@ -127,6 +127,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 LOGIN_REDIRECT_URL  = "/stash/"
 LOGOUT_REDIRECT_URL = "/stash/"
+LOGIN_URL = "/stash/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/

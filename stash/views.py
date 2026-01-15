@@ -17,6 +17,7 @@ class FileDetailView(DetailView):
 class FileCreateView(LoginRequiredMixin, CreateView):
 	model = File
 	fields = ["file", "description", "source", "nsfw"]
+	redirect_field_name = None
 
 	def form_valid(self, form):
 		form.instance.added_by = self.request.user
