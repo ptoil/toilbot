@@ -26,9 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-a-g5h!c$raxdg!ouwdb#!rhs*=jj8o=ow-bsyuh=ugfu#m&_pb"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = ["localhost", "34.133.136.94", "toilbot.run"]
+ALLOWED_HOSTS = [os.getenv("HOST")]
 
 
 # Application definition
