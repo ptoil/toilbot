@@ -1,47 +1,11 @@
-<!doctype html>
-<html lang="en">
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Stash</title>	
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css">
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="https://kit.fontawesome.com/c45f8edf9d.js" crossorigin="anonymous"></script>
-	{% load static %}
-	<link rel="stylesheet" href="{% static 'stash/style.css' %}">
-</head>
-<body class="d-flex flex-column min-vh-100" data-bs-theme="dark">
-	<nav class="navbar navbar-expand-sm border-bottom">
-		<div class="container-fluid">
-			<ul class="navbar-nav me-auto">
-				<li class="nav-item">
-					<a class="nav-link active" href="{% url 'file_list' %}">Stash</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" href="{% url 'file_create' %}">Upload</a>
-				</li>
-			</ul>
-			{% load socialaccount %} 
-			{% load static %}
-			{% if user.is_authenticated %}
-				<span class="nav-link text-white me-2">
-					Logged in as <strong>{{ user.username }}</strong>
-				</span>
+{% extends "stash_base.html" %}
 
-				<form action="{% url 'account_logout' %}" method="post">
-					{% csrf_token %}
-					<button type="submit" class="btn btn-outline-light">Logout</button>
-				</form>
-			{% else %}
-				<form action="{% provider_login_url 'discord' %}" method="post">
-					{% csrf_token %}
-					<button type="submit" class="btn btn-discord">Login with Discord</button>
-				</form>
-			{% endif %}
-		</div>
-	</nav>
-	
-	<div class="container-xxl flex-grow-1 pt-3 bg-secondary-subtle">
+{% block title %}Stash{% endblock %}
+
+{% block stash_active %}active{% endblock %}
+{% block upload_active %}{% endblock %}
+
+{% block content %}
 	{% for file in object_list %}
 		<div class="card mb-2 {% if file.nsfw %}border-danger{% else %}border-secondary{% endif %} overflow-hidden">
 			<div class="row g-0 h-100" style="min-height: 150px">
@@ -87,6 +51,4 @@
 	{% empty %}
 		<p>No files yet.</p>
 	{% endfor %}
-	</div>
-</body>
-</html>
+{% endblock %}

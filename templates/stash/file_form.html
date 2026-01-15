@@ -1,19 +1,14 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Stash</title>
-		<!--link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"-->
-		<style>
+{% extends "stash_base.html" %}
 
-		</style>
-	</head>
-	<body class="d-flex flex-column min-vh-100" data-bs-theme="dark">
-		<form method="post" enctype="multipart/form-data">
-			{% csrf_token %}
-			{{ form.as_p }}
-			<input type="submit" value="Save">
-		</form>
-	</body>
-</html>
+{% block title %}Stash{% endblock %}
+
+{% block stash_active %}{% endblock %}
+{% block upload_active %}active{% endblock %}
+
+{% block content %}
+	<form method="post" enctype="multipart/form-data">
+		{% csrf_token %}
+		{{ form.as_p }}
+		<input type="submit" value="Save">
+	</form>
+{% endblock %}
