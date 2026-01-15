@@ -26,8 +26,10 @@ class File(models.Model):
 
 	def file_type(self):
 		extension = os.path.splitext(self.file.name)[1].lower()
-		if extension in (".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".mp4", ".mkv", ".avi", ".mov", ".webm"):
-			return "visual"
+		if extension in (".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"):
+			return "image"
+		elif extension in (".mp4", ".mkv", ".avi", ".mov", ".webm"):
+			return "video"
 		elif extension in (".mp3", ".wav", ".ogg", ".m4a"):
 			return "audio"
 		else:
