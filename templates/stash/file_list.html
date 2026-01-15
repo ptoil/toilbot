@@ -28,9 +28,11 @@
 				<span class="nav-link text-white me-2">
 					Logged in as <strong>{{ user.username }}</strong>
 				</span>
-				<a href="{% url 'account_logout' %}" class="btn btn-outline-light">
-					Logout
-				</a>
+
+				<form action="{% url 'account_logout' %}" method="post">
+					{% csrf_token %}
+					<button type="submit" class="btn btn-outline-light">Logout</button>
+				</form>
 			{% else %}
 				<form action="{% provider_login_url 'discord' %}" method="post">
 					{% csrf_token %}
