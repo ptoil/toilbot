@@ -1,14 +1,5 @@
-{% extends "stash_base.html" %}
+{% extends "stash_form.html" %}
 
-{% block title %}Stash{% endblock %}
+{% block header %}Update File{% endblock %}
 
-{% block stash_active %}{% endblock %}
-{% block upload_active %}active{% endblock %}
-
-{% block content %}
-	<form method="post" enctype="multipart/form-data">
-		{% csrf_token %}
-		{{ form.as_p }}
-		<input type="submit" value="Save">
-	</form>
-{% endblock %}
+{% block button %}Update{% endblock %}
