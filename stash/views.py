@@ -14,15 +14,18 @@ class FileListView(ListView):
 class FileDetailView(DetailView):
 	model = File
 
-class FileCreateView(LoginRequiredMixin, CreateView):
+class FileUploadView(LoginRequiredMixin, CreateView):
 	model = File
 	fields = ["file", "description", "source", "nsfw"]
 	redirect_field_name = None
+	template_name_suffix = "_upload_form"
 
 	def form_valid(self, form):
 		form.instance.added_by = self.request.user
 		return super().form_valid(form)
 
-class FileUpdateView(UpdateView):
+class FileUpdateView(LoginRequiredMixin, UpdateView):
 	model = File
 	fields = ["file", "description", "source", "nsfw"]
+	redirect_field_name = None
+	template_name_suffix = "_update_form"
