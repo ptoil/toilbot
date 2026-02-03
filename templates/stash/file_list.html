@@ -7,18 +7,35 @@
 
 {% block content %}
 	<div class="btn-toolbar mb-3">
-		
 		<div class="btn-group me-3">
 			<button type="button" class="btn btn-secondary active">SFW</button>
 			<button type="button" class="btn btn-secondary">Both</button>
 			<button type="button" class="btn btn-danger">NSFW</button>
 		</div>
-		<div class="btn-group">
+
+		<!--div class="dropdown btn-group">
 			<div class="input-group">
 				<button class="btn btn-secondary">Date</button>
 			</div>
 			<button type="button" class="btn btn-secondary"><i class="fas fa-caret-down"></i></button> 
+		</div-->
+
+		<div class="input-group mb-3 custom-sort-group">
+			<button type="button" class="btn btn-secondary" data-bs-toggle="dropdown" aria-expanded="false">
+				Date
+			</button>
+			<ul class="dropdown-menu">
+				<li><a class="dropdown-item" href="#">Bit Rate</a></li>
+				<li><a class="dropdown-item" href="#">Created At</a></li>
+				<li><a class="dropdown-item active" href="#">Date</a></li>
+				<li><a class="dropdown-item" href="#">File Size</a></li>
+			</ul>
+
+			<button type="button" class="btn btn-secondary" id="sort-direction-toggle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Descending">
+				<i class="fas fa-caret-down"></i>
+			</button>
 		</div>
+
 	</div>
 	{% for file in object_list %}
 		<div class="card mb-2 {% if file.nsfw %}border-danger{% else %}border-secondary{% endif %} overflow-hidden">
@@ -69,4 +86,23 @@
 	{% empty %}
 		<p>No files yet.</p>
 	{% endfor %}
+	<script>
+		//Enable tooltips
+		const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+		const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+		const toggleBtn = document.getElementById('sort-direction-toggle');
+		const icon = toggleBtn.querySelector('i');
+		let sortTooltip = new bootstrap.Tooltip(toggleBtn);
+		let isDescending = true;
+
+		toggleBtn.addEventListener('click', () => {
+				isDescending = !isDescending;
+				
+				icon.className = isDescending ? 'fas fa-caret-down' : 'fas fa-caret-up';
+				
+				sortTooltip.setContent({ '.tooltip-inner': isDescending ? 'Descending' : 'Ascending' });
+				sortTooltip.update()
+		});
+	</script>
 {% endblock %}
