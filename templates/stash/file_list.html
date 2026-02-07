@@ -6,27 +6,33 @@
 {% block upload_active %}{% endblock %}
 
 {% block content %}
-	{% partialdef content-partial inline %}
 	<div id="content-target">
+	{% partialdef content-partial inline %}
 		<div class="btn-toolbar mb-3">
+			{% load url_utils %}
 			<div class="btn-group me-3">
-				<button class="btn btn-secondary active">SFW</button>
-				<button class="btn btn-secondary">Both</button>
-				<button class="btn btn-danger">NSFW</button>
+				<button class="btn btn-secondary {% if filters.nsfw == "sfw" %}active{% endif %}"
+				        hx-get="{% get_filter_url nsfw="sfw" %}" hx-target="#content-target">SFW</button>
+				<button class="btn btn-secondary {% if filters.nsfw == "both" %}active{% endif %}"
+				        hx-get="{% get_filter_url nsfw="both" %}" hx-target="#content-target">Both</button>
+				<button class="btn btn-danger {% if filters.nsfw == "nsfw" %}active{% endif %}"
+				        hx-get="{% get_filter_url nsfw="nsfw" %}" hx-target="#content-target">NSFW</button>
 			</div>
 
 			<div class="input-group mb-3 custom-sort-group">
 				<button class="btn btn-secondary" data-bs-toggle="dropdown" aria-expanded="false">
 					Date
 				</button>
-				<ul class="dropdown-menu" id="sort-dropdown">
-					<li><a class="dropdown-item">Created</a></li>
-					<li><a class="dropdown-item active">Modified</a></li>
+				<ul class="dropdown-menu">
+					<li><a class="dropdown-item {% if filters.sort == "created" %}active{% endif %}"
+						     hx-get="{% get_filter_url sort="created" %}" hx-target="#content-target">Created</a></li>
+					<li><a class="dropdown-item {% if filters.sort == "modified" %}active{% endif %}"
+						     hx-get="{% get_filter_url sort="modified" %}" hx-target="#content-target">Modified</a></li>
 				</ul>
-
-				<button class="btn btn-secondary" id="sort-toggle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Descending"
-				        hx-get="?sort={{ current_sort }}&direction={{ next_direction }}" hx-target="#content-target">
-					<i class="fas fa-caret-down"></i>
+				<button class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top"
+				        data-bs-title="{% if filters.direction == "desc" %}Descending{% else %}Ascending{% endif %}"
+				        hx-get="{% get_filter_url "dir" %}" hx-target="#content-target">
+					<i class="fas fa-caret-{% if filters.direction == "desc" %}down{% else %}up{% endif %}"></i>
 				</button>
 			</div>
 		</div>
@@ -68,20 +74,14 @@
 						<button onclick="copyLink('{{ file.link }}')" class="btn action-button-cell">
 							<i class="fas fa-link fa-lg"></i>
 						</button>
-						<script type="text/javascript">
-							function copyLink(link) {
-								navigator.clipboard.writeText(link);
-								alert("Copied: " + link)
-							}
-						</script>
 					</div>
 				</div>
 			</div>
 	{% empty %}
 		<p>No files yet.</p>
 	{% endfor %}
-	</div>
 	{% endpartialdef %}
+	</div>
 
 	<script>
 		function enableTooltips() {
@@ -89,8 +89,7 @@
 			[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 		}
 
-		//Enable tooltips on page load
-		enableTooltips()
+		enableTooltips() //Enable tooltips on page load
 
 		document.body.addEventListener("htmx:afterSwap", () => {
 			const oldTooltips = document.querySelectorAll(".tooltip");
@@ -98,5 +97,10 @@
 
 			enableTooltips()
 		});
+
+		function copyLink(link) {
+			navigator.clipboard.writeText(link);
+			alert("Copied: " + link)
+		}
 	</script>
 {% endblock %}

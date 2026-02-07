@@ -10,11 +10,9 @@ from stash.models import File
 class FileListView(ListView):
 	model = File
 #	paginate_by = 2
-
 	
 	def get_template_names(self):
 		template_names = super().get_template_names()
-
 		if self.request.headers.get("HX-Request"):
 			return [f"{i}#content-partial" for i in template_names]
 		else:
@@ -25,6 +23,11 @@ class FileListView(ListView):
 
 		sort = self.request.GET.get("sort", default="modified")
 		direction = self.request.GET.get("direction", default="desc")
+		nsfw = self.request.GET.get("nsfw", default="sfw")
+
+		if nsfw == "nsfw":  qs = qs.filter(nsfw=True)
+		elif nsfw == "sfw": qs = qs.filter(nsfw=False)
+		#else keep both
 
 		prefix = '-' if direction == "desc" else ''
 
@@ -36,19 +39,14 @@ class FileListView(ListView):
 
 		sort = self.request.GET.get("sort", default="modified")
 		direction = self.request.GET.get("direction", default="desc")
-
-		context["current_sort"] = sort
-		context["current_direction"] = direction
-		context["next_direction"] = "asc" if direction == "desc" else "desc"		
-
-		print(context["current_direction"], context["next_direction"])
-
+		nsfw = self.request.GET.get("nsfw", default="sfw")
+		filters = {
+			"sort" : sort,
+			"direction" : direction,
+			"nsfw" : nsfw
+		}
+		context["filters"] = filters
 		return context
-
-#	def get(self, request, *args, **kwargs):
-#		super().get(request)
-
-
 
 
 class FileDetailView(DetailView):
