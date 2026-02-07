@@ -6,103 +6,97 @@
 {% block upload_active %}{% endblock %}
 
 {% block content %}
-	<div class="btn-toolbar mb-3">
-		<div class="btn-group me-3">
-			<button type="button" class="btn btn-secondary active">SFW</button>
-			<button type="button" class="btn btn-secondary">Both</button>
-			<button type="button" class="btn btn-danger">NSFW</button>
-		</div>
-
-		<!--div class="dropdown btn-group">
-			<div class="input-group">
-				<button class="btn btn-secondary">Date</button>
+	{% partialdef content-partial inline %}
+	<div id="content-target">
+		<div class="btn-toolbar mb-3">
+			<div class="btn-group me-3">
+				<button class="btn btn-secondary active">SFW</button>
+				<button class="btn btn-secondary">Both</button>
+				<button class="btn btn-danger">NSFW</button>
 			</div>
-			<button type="button" class="btn btn-secondary"><i class="fas fa-caret-down"></i></button> 
-		</div-->
 
-		<div class="input-group mb-3 custom-sort-group">
-			<button type="button" class="btn btn-secondary" data-bs-toggle="dropdown" aria-expanded="false">
-				Date
-			</button>
-			<ul class="dropdown-menu">
-				<li><a class="dropdown-item" href="#">Bit Rate</a></li>
-				<li><a class="dropdown-item" href="#">Created At</a></li>
-				<li><a class="dropdown-item active" href="#">Date</a></li>
-				<li><a class="dropdown-item" href="#">File Size</a></li>
-			</ul>
+			<div class="input-group mb-3 custom-sort-group">
+				<button class="btn btn-secondary" data-bs-toggle="dropdown" aria-expanded="false">
+					Date
+				</button>
+				<ul class="dropdown-menu" id="sort-dropdown">
+					<li><a class="dropdown-item">Created</a></li>
+					<li><a class="dropdown-item active">Modified</a></li>
+				</ul>
 
-			<button type="button" class="btn btn-secondary" id="sort-direction-toggle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Descending">
-				<i class="fas fa-caret-down"></i>
-			</button>
+				<button class="btn btn-secondary" id="sort-toggle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Descending"
+				        hx-get="?sort={{ current_sort }}&direction={{ next_direction }}" hx-target="#content-target">
+					<i class="fas fa-caret-down"></i>
+				</button>
+			</div>
 		</div>
 
-	</div>
-	{% for file in object_list %}
-		<div class="card mb-2 {% if file.nsfw %}border-danger{% else %}border-secondary{% endif %} overflow-hidden">
-			<div class="row g-0 h-100" style="min-height: 150px">
-				<div class="col-10 d-flex text-decoration-none text-reset">
-					<a href="view/{{ file.id }}" class="action-button-cell">
-						<div class="thumbnail-container d-flex align-items-center justify-content-center">
-							{% load thumbnail %}
-							{% if file.file_type == "image" or file.file_type == "video" %}
-								<img src="{% thumbnail file.file 'preview' %}" class="img-fluid">
-							{% elif file.file_type == "audio" %}
-								<i class="fas fa-music fa-4x"></i>
-							{% elif file.file_type == "other" %}
-								<i class="fas fa-file fa-4x"></i>
-							{% endif %}
-						</div>
-						<div class="card-body flex-grow-1">
-							<div class="row">
-								<div class="col-8">
-									<h5 class="card-title">{{ file }}</h5>
-									<p class="card-text text-muted small">{{ file.description }}</p>
-								</div>
-								<div class="col-4 text-end">
-								{% if file.nsfw %}
-									<span class="badge bg-danger">NSFW</span>
+		{% for file in object_list %}
+			<div class="card mb-2 {% if file.nsfw %}border-danger{% else %}border-secondary{% endif %} overflow-hidden">
+				<div class="row g-0 h-100" style="min-height: 150px">
+					<div class="col-10 d-flex text-decoration-none text-reset">
+						<a href="view/{{ file.id }}" class="action-button-cell">
+							<div class="thumbnail-container d-flex align-items-center justify-content-center">
+								{% load thumbnail %}
+								{% if file.file_type == "image" or file.file_type == "video" %}
+									<img src="{% thumbnail file.file 'preview' %}" class="img-fluid">
+								{% elif file.file_type == "audio" %}
+									<i class="fas fa-music fa-4x"></i>
+								{% elif file.file_type == "other" %}
+									<i class="fas fa-file fa-4x"></i>
 								{% endif %}
+							</div>
+							<div class="card-body flex-grow-1">
+								<div class="row">
+									<div class="col-8">
+										<h5 class="card-title">{{ file }}</h5>
+										<p class="card-text text-muted small">{{ file.description }}</p>
+									</div>
+									<div class="col-4 text-end">
+									{% if file.nsfw %}
+										<span class="badge bg-danger">NSFW</span>
+									{% endif %}
+									</div>
 								</div>
 							</div>
-						</div>
-					</a>
-				</div>
-				<div class="col-2 border-start d-flex flex-column">
-					<a href="{{ file.file.url }}" download class="border-bottom action-button-cell">
-						<i class="fas fa-download fa-lg"></i>
-					</a>
-					<button onclick="copyLink('{{ file.link }}')" class="btn action-button-cell">
-						<i class="fas fa-link fa-lg"></i>
-					</button>
-					<script type="text/javascript">
-						function copyLink(link) {
-							navigator.clipboard.writeText(link);
-							alert("Copied: " + link)
-						}
-					</script>
+						</a>
+					</div>
+					<div class="col-2 border-start d-flex flex-column">
+						<a href="{{ file.file.url }}" download class="border-bottom action-button-cell">
+							<i class="fas fa-download fa-lg"></i>
+						</a>
+						<button onclick="copyLink('{{ file.link }}')" class="btn action-button-cell">
+							<i class="fas fa-link fa-lg"></i>
+						</button>
+						<script type="text/javascript">
+							function copyLink(link) {
+								navigator.clipboard.writeText(link);
+								alert("Copied: " + link)
+							}
+						</script>
+					</div>
 				</div>
 			</div>
-		</div>
 	{% empty %}
 		<p>No files yet.</p>
 	{% endfor %}
+	</div>
+	{% endpartialdef %}
+
 	<script>
-		//Enable tooltips
-		const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-		const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+		function enableTooltips() {
+			tooltipTriggerList = document.querySelectorAll("[data-bs-toggle='tooltip']");
+			[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+		}
 
-		const toggleBtn = document.getElementById('sort-direction-toggle');
-		const icon = toggleBtn.querySelector('i');
-		let sortTooltip = new bootstrap.Tooltip(toggleBtn);
-		let isDescending = true;
+		//Enable tooltips on page load
+		enableTooltips()
 
-		toggleBtn.addEventListener('click', () => {
-				isDescending = !isDescending;
-				
-				icon.className = isDescending ? 'fas fa-caret-down' : 'fas fa-caret-up';
-				
-				sortTooltip.setContent({ '.tooltip-inner': isDescending ? 'Descending' : 'Ascending' });
-				sortTooltip.update()
+		document.body.addEventListener("htmx:afterSwap", () => {
+			const oldTooltips = document.querySelectorAll(".tooltip");
+			oldTooltips.forEach(t => t.remove());
+
+			enableTooltips()
 		});
 	</script>
 {% endblock %}
