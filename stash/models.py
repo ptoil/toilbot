@@ -1,7 +1,10 @@
 import os
 from django.db import models
 from django.urls import reverse
-from django.contrib.auth.models import User
+from django.conf import settings
+
+from django.dispatch import receiver
+from allauth.socialaccount.signals import social_account_added
 
 # Create your models here.
 class File(models.Model):
@@ -17,7 +20,7 @@ class File(models.Model):
 	#Automatic
 	created = models.DateTimeField(auto_now_add=True)
 	modified = models.DateTimeField(auto_now=True)
-	added_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+	added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING)
 	link = models.URLField(blank=True)
 #	link_updated = models.DateTimeField()
 #	file_size_bytes = models.PositiveIntegerField()
@@ -40,3 +43,19 @@ class File(models.Model):
 
 	def __str__(self):
 		return self.file.name
+
+
+class Profile(models.Model):
+
+	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+
+@receiver(social_account_added)
+def create_profile(request, socialaccount, **kwargs):
+	Profile.objects.get_or_create(user=socialaccount.user)
+
+"""
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def save_profile(sender, instance, **kwargs):
+	instance.profile.save()
+"""

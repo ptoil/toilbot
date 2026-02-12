@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.base import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from stash.models import File
@@ -67,3 +68,9 @@ class FileUpdateView(LoginRequiredMixin, UpdateView):
 	fields = ["file", "description", "source", "nsfw"]
 	redirect_field_name = None
 	template_name_suffix = "_update_form"
+
+
+class ProfileView(LoginRequiredMixin, TemplateView):
+	template_name = "stash/profile.html"
+
+	#def get_context_data(self, **kwargs):

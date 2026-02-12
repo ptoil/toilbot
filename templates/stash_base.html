@@ -16,7 +16,7 @@
 	<nav class="navbar navbar-expand-sm border-bottom">
 		<div class="container-fluid">
 			{% load socialaccount %}
-			<ul class="navbar-nav me-auto">
+			<ul class="navbar-nav flex-row gap-sm-0 gap-3 me-auto">
 				<li class="nav-item">
 					<a class="nav-link {% block stash_active %}active{% endblock %}" href="{% url 'file_list' %}">Stash</a>
 				</li>
@@ -29,12 +29,12 @@
 				</li>
 			</ul>
 			{% if user.is_authenticated %}
-				<span class="nav-link text-white me-2">
-					Logged in as <strong>{{ user.username }}</strong>
-				</span>
+				<a href="/stash/profile/">
+					<img src="{{ user.socialaccount_set.all.0.get_avatar_url }}" class="rounded-circle" height="40">
+				</a>
 				<form action="{% url 'account_logout' %}" method="post">
 					{% csrf_token %}
-					<button type="submit" class="btn btn-outline-light">Logout</button>
+					<button type="submit" class="btn btn-outline-light ms-3">Logout</button>
 				</form>
 			{% else %}
 				<form action="{% provider_login_url 'discord' %}" method="post">
@@ -45,7 +45,7 @@
 		</div>
 	</nav>
 	
-	<div class="container-xxl flex-grow-1 pt-3 bg-secondary-subtle">
+	<div class="container-xxl flex-grow-1 p-3 bg-secondary-subtle">
 		{% block content %}
 		{% endblock %}
 	</div>

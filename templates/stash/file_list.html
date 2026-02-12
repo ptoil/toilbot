@@ -13,7 +13,7 @@
 			<div class="btn-group me-3">
 				<button class="btn btn-secondary {% if filters.nsfw == "sfw" %}active{% endif %}"
 				        hx-get="{% get_filter_url nsfw="sfw" %}" hx-target="#content-target">SFW</button>
-				<button class="btn btn-secondary {% if filters.nsfw == "both" %}active{% endif %}"
+				<button class="btn btn-danger {% if filters.nsfw == "both" %}active{% endif %}"
 				        hx-get="{% get_filter_url nsfw="both" %}" hx-target="#content-target">Both</button>
 				<button class="btn btn-danger {% if filters.nsfw == "nsfw" %}active{% endif %}"
 				        hx-get="{% get_filter_url nsfw="nsfw" %}" hx-target="#content-target">NSFW</button>
@@ -21,7 +21,7 @@
 
 			<div class="input-group mb-3 custom-sort-group">
 				<button class="btn btn-secondary" data-bs-toggle="dropdown" aria-expanded="false">
-					Date
+					{{ filters.sort|title }}
 				</button>
 				<ul class="dropdown-menu">
 					<li><a class="dropdown-item {% if filters.sort == "created" %}active{% endif %}"

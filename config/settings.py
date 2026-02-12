@@ -125,7 +125,7 @@ SOCIALACCOUNT_PROVIDERS = {
 	}
 }
 
-LOGIN_REDIRECT_URL  = "/stash/"
+LOGIN_REDIRECT_URL  = "/stash/profile/"
 LOGOUT_REDIRECT_URL = "/stash/"
 LOGIN_URL = "/stash/"
 

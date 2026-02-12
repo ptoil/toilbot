@@ -9,16 +9,13 @@
 	<form method="post" enctype="multipart/form-data">
 		{% csrf_token %}
 		
-		<h2 class="mb-4">{% block header %}{% endblock %}</h2>
+		<h2 class="mb-3">{% block header %}{% endblock %}</h2>
 
 		{% for field in form %}
 			<div class="row mb-3 align-items-center">
 				<div class="col-sm-3 text-sm-end pe-4 mb-1">
-					<label for="{{ field.id_for_label }}" class="fw-bold">
-						{{ field.label }}
-					</label>
+					<label for="{{ field.id_for_label }}" class="fw-bold">{{ field.label }}</label>
 				</div>
-
 				<div class="col-sm-9 ps-4">
 					{{ field }}
 				</div>
