@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.conf import settings
 
 from django.dispatch import receiver
-from allauth.socialaccount.signals import social_account_added
+from allauth.socialaccount.signals import social_account_added, social_account_updated
 
 # Create your models here.
 class File(models.Model):
@@ -49,13 +49,16 @@ class Profile(models.Model):
 
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
+	#Filters
+	sort = models.CharField(default="modified")
+	direction = models.CharField(default="desc")
+	nsfw = models.CharField(default="sfw")
+
 
 @receiver(social_account_added)
-def create_profile(request, socialaccount, **kwargs):
-	Profile.objects.get_or_create(user=socialaccount.user)
+def create_profile(request, sociallogin, **kwargs):
+	Profile.objects.get_or_create(user=sociallogin.user)
 
-"""
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def save_profile(sender, instance, **kwargs):
-	instance.profile.save()
-"""
+@receiver(social_account_updated)
+def create_profile(request, sociallogin, **kwargs):
+	Profile.objects.get_or_create(user=sociallogin.user)

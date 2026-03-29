@@ -6,5 +6,60 @@
 {% block upload_active %}{% endblock %}
 
 {% block content %}
-<strong>yooooo??</strong>
+<img src="{{ user.socialaccount_set.all.0.get_avatar_url }}" class="rounded-circle me-3"></img>
+<br><br>
+<h5>Default Filters</h5>
+<div class="btn-toolbar mb-3">
+	<div class="btn-group me-3" id="nsfw-buttons">
+		<button class="btn btn-secondary {% if user.profile.nsfw == "sfw" %}active{% endif %}" data-filter="sfw">SFW</button>
+		<button class="btn btn-danger {% if user.profile.nsfw == "both" %}active{% endif %}" data-filter="both">Both</button>
+		<button class="btn btn-danger {% if user.profile.nsfw == "nsfw" %}active{% endif %}" data-filter="nsfw">NSFW</button>
+	</div>
+
+	<div class="input-group me-3">
+		<button class="btn btn-secondary" data-bs-toggle="dropdown" aria-expanded="false">
+			{{ user.profile.sort|title }}
+		</button>
+		<ul class="dropdown-menu" id="sort-buttons">
+			<li><a class="dropdown-item {% if user.profile.sort == "created" %}active{% endif %}" data-filter="created">Created</a></li>
+			<li><a class="dropdown-item {% if user.profile.sort == "modified" %}active{% endif %}" data-filter="modified">Modified</a></li>
+		</ul>
+		<button class="btn btn-secondary" id="direction-button" data-bs-toggle="tooltip" data-bs-placement="top"
+		        data-bs-title="{% if user.profile.direction == "desc" %}Descending{% else %}Ascending{% endif %}">
+			<i class="fas fa-caret-{% if user.profile.direction == "desc" %}down{% else %}up{% endif %}"></i>
+		</button>
+	</div>
+</div>
+{{  }}
+<script>
+	function enableTooltips() {
+		tooltipTriggerList = document.querySelectorAll("[data-bs-toggle='tooltip']");
+		[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+	}
+
+	enableTooltips() //Enable tooltips on page load
+	
+	const filterChoices = new Map();
+	filterChoices.set("nsfw", user.profile.nsfw);
+	filterChoices.set("sort", user.profile.sort);
+	filterChoices.set("direction", user.profile.direction);
+	
+	const nsfwButtons = document.getElementById("nsfw-buttons");
+	const sortButtons = document.getElementById("sort-buttons");
+	const directionButton = document.getElementById("direction-button");
+	const directionIcon = directionButton.querySelector('i');
+
+	nsfwButtons.addEventListener("click", function(event) {
+		const clickedButton = event.target.closest("button");
+		const choice = clickedButton.getAttribute("data-filter");
+
+		buttons = nsfwButtons.children
+		for (i = 0; i < buttons.length; i++) {
+			buttons[i].classList.remove("active")
+		}
+		clickedButton.classList.add("active")
+
+		//filterChoices.set("nsfw", choice)
+	});
+</script>
 {% endblock %}
