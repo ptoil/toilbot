@@ -50,9 +50,9 @@ class Profile(models.Model):
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 	#Filters
+	nsfw = models.CharField(default="sfw")
 	sort = models.CharField(default="modified")
 	direction = models.CharField(default="desc")
-	nsfw = models.CharField(default="sfw")
 
 
 @receiver(social_account_added)

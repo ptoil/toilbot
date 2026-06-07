@@ -4,8 +4,9 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic.base import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 
-from stash.models import File
+from stash.models import File, Profile
 
 
 class FileListView(ListView):
@@ -22,9 +23,15 @@ class FileListView(ListView):
 	def get_queryset(self):
 		qs = super(FileListView, self).get_queryset()
 
-		sort = self.request.GET.get("sort", default="modified")
-		direction = self.request.GET.get("direction", default="desc")
-		nsfw = self.request.GET.get("nsfw", default="sfw")
+		#check URL request, then user settings if logged in, then default
+		if self.request.user.is_authenticated:
+			nsfw = self.request.GET.get("nsfw", default=self.request.user.profile.nsfw)
+			sort = self.request.GET.get("sort", default=self.request.user.profile.sort)
+			direction = self.request.GET.get("direction", default=self.request.user.profile.direction)
+		else:
+			nsfw = self.request.GET.get("nsfw", default="sfw")
+			sort = self.request.GET.get("sort", default="modified")
+			direction = self.request.GET.get("direction", default="desc")
 
 		if nsfw == "nsfw":  qs = qs.filter(nsfw=True)
 		elif nsfw == "sfw": qs = qs.filter(nsfw=False)
@@ -38,9 +45,16 @@ class FileListView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 
-		sort = self.request.GET.get("sort", default="modified")
-		direction = self.request.GET.get("direction", default="desc")
-		nsfw = self.request.GET.get("nsfw", default="sfw")
+		#check URL request, then user settings if logged in, then default
+		if self.request.user.is_authenticated:
+			nsfw = self.request.GET.get("nsfw", default=self.request.user.profile.nsfw)
+			sort = self.request.GET.get("sort", default=self.request.user.profile.sort)
+			direction = self.request.GET.get("direction", default=self.request.user.profile.direction)
+		else:
+			nsfw = self.request.GET.get("nsfw", default="sfw")
+			sort = self.request.GET.get("sort", default="modified")
+			direction = self.request.GET.get("direction", default="desc")
+
 		filters = {
 			"sort" : sort,
 			"direction" : direction,
@@ -73,7 +87,7 @@ class FileUpdateView(LoginRequiredMixin, UpdateView):
 class ProfileView(LoginRequiredMixin, TemplateView):
 	template_name = "stash/profile.html"
 
-	
+	"""
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 
@@ -84,4 +98,24 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 			"nsfw" : profile.nsfw
 		}
 		return context
-	
+	"""
+
+class JsonableResponseMixin:
+	def form_invalid(self, form):
+		response = super().form_invalid(form)
+		return JsonResponse(form.errors, status=400)
+
+	def form_valid(self, form):
+		response = super().form_valid(form)
+		data = {'status': 'success', 'message': 'Profile updated!'}
+		return JsonResponse(data)
+
+class ProfileUpdateView(LoginRequiredMixin, JsonableResponseMixin, UpdateView):
+	model = Profile
+	fields = ["nsfw", "sort", "direction"]
+
+	def get_object(self, queryset=None):
+		return self.request.user.profile
+
+	def get_success_url(self):
+		return '#'

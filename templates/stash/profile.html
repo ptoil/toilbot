@@ -17,7 +17,7 @@
 	</div>
 
 	<div class="input-group me-3">
-		<button class="btn btn-secondary" data-bs-toggle="dropdown" aria-expanded="false">
+		<button class="btn btn-secondary" id="sort-title" data-bs-toggle="dropdown" aria-expanded="false">
 			{{ user.profile.sort|title }}
 		</button>
 		<ul class="dropdown-menu" id="sort-buttons">
@@ -25,41 +25,109 @@
 			<li><a class="dropdown-item {% if user.profile.sort == "modified" %}active{% endif %}" data-filter="modified">Modified</a></li>
 		</ul>
 		<button class="btn btn-secondary" id="direction-button" data-bs-toggle="tooltip" data-bs-placement="top"
-		        data-bs-title="{% if user.profile.direction == "desc" %}Descending{% else %}Ascending{% endif %}">
+				data-bs-title="{% if user.profile.direction == "desc" %}Descending{% else %}Ascending{% endif %}">
 			<i class="fas fa-caret-{% if user.profile.direction == "desc" %}down{% else %}up{% endif %}"></i>
 		</button>
 	</div>
 </div>
-{{  }}
+<div>
+	<form id="update-form" action="{% url "profile_update" %}" method="POST">
+		{% csrf_token %}
+		<button class="btn btn-primary" id="update-button">Update Profile</button>
+	</form>
+</div>
+
 <script>
 	function enableTooltips() {
 		tooltipTriggerList = document.querySelectorAll("[data-bs-toggle='tooltip']");
 		[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 	}
+	enableTooltips(); //Enable tooltips on page load
 
-	enableTooltips() //Enable tooltips on page load
+	function toTitleCase(str) {
+		return str.replace(/\w\S*/g, text => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase());
+	}
 	
 	const filterChoices = new Map();
-	filterChoices.set("nsfw", user.profile.nsfw);
-	filterChoices.set("sort", user.profile.sort);
-	filterChoices.set("direction", user.profile.direction);
+	filterChoices.set("nsfw", "{{ user.profile.nsfw }}");
+	filterChoices.set("sort", "{{ user.profile.sort }}");
+	filterChoices.set("direction", "{{ user.profile.direction }}");
 	
 	const nsfwButtons = document.getElementById("nsfw-buttons");
 	const sortButtons = document.getElementById("sort-buttons");
+	const sortTitle = document.getElementById("sort-title");
 	const directionButton = document.getElementById("direction-button");
 	const directionIcon = directionButton.querySelector('i');
+	const updateForm = document.getElementById("update-form");
 
 	nsfwButtons.addEventListener("click", function(event) {
 		const clickedButton = event.target.closest("button");
 		const choice = clickedButton.getAttribute("data-filter");
 
-		buttons = nsfwButtons.children
+		buttons = nsfwButtons.children;
 		for (i = 0; i < buttons.length; i++) {
-			buttons[i].classList.remove("active")
+			buttons[i].classList.remove("active");
 		}
-		clickedButton.classList.add("active")
+		clickedButton.classList.add("active");
 
-		//filterChoices.set("nsfw", choice)
+		filterChoices.set("nsfw", choice);
+	});
+
+	sortButtons.addEventListener("click", function(event) {
+		const clickedButton = event.target.closest("a");
+		const choice = clickedButton.getAttribute("data-filter");
+		
+		buttons = sortButtons.children;
+		for (i = 0; i < buttons.length; i++) {
+			button = buttons[i].querySelector('a');
+			button.classList.remove("active");
+		}
+		clickedButton.classList.add("active");
+		sortTitle.innerHTML = toTitleCase(choice);
+
+		filterChoices.set("sort", choice);
+	});
+
+	directionButton.addEventListener("click", function(event) {
+		filterChoices.set("direction", (filterChoices.get("direction") == "desc") ? "asc" : "desc");
+		
+		directionIcon.className = (filterChoices.get("direction") == "desc") ? "fas fa-caret-down" : "fas fa-caret-up";
+		
+		let bsTooltip = bootstrap.Tooltip.getInstance(directionButton);
+		bsTooltip.setContent({ '.tooltip-inner': (filterChoices.get("direction") == "desc") ? "Descending" : "Ascending"});
+	});
+
+	updateForm.addEventListener("click", function(event) {
+		event.preventDefault(); //prevent redirect
+
+		const form = this;
+		const url = form.action;
+
+		const formData = new FormData(form);
+		formData.append("nsfw", filterChoices.get("nsfw"))
+		formData.append("sort", filterChoices.get("sort"))
+		formData.append("direction", filterChoices.get("direction"))
+		
+		fetch(url, {
+			method: "POST",
+			body: formData
+		})
+		.then(response => {
+			if (!response.ok) {
+				// If UpdateView returns a 400 error (validation failed), handle it here
+				return response.json().then(errors => { throw errors; });
+			}
+			return response.json();
+		})
+		.then(data => {
+			console.log('Success:', data.message); // "Profile updated!"
+			alert('Saved successfully!');
+		})
+		.catch(errors => {
+			console.error('Validation Errors:', errors);
+			alert('Failed to save. Check console for details.');
+		});
+		
 	});
 </script>
 {% endblock %}
