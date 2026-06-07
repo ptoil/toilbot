@@ -31,7 +31,8 @@
 	</div>
 </div>
 <div>
-	<form id="update-form" action="{% url "profile_update" %}" method="POST">
+	<form id="update-form" action="{% url "profile_update" %}" method="POST"
+		  data-bs-toggle="tooltip" data-bs-placement="top">
 		{% csrf_token %}
 		<button class="btn btn-primary" id="update-button">Update Profile</button>
 	</form>
@@ -59,6 +60,7 @@
 	const directionButton = document.getElementById("direction-button");
 	const directionIcon = directionButton.querySelector('i');
 	const updateForm = document.getElementById("update-form");
+	const updateButton = document.getElementById("update-button");
 
 	nsfwButtons.addEventListener("click", function(event) {
 		const clickedButton = event.target.closest("button");
@@ -90,11 +92,11 @@
 
 	directionButton.addEventListener("click", function(event) {
 		filterChoices.set("direction", (filterChoices.get("direction") == "desc") ? "asc" : "desc");
-		
+
 		directionIcon.className = (filterChoices.get("direction") == "desc") ? "fas fa-caret-down" : "fas fa-caret-up";
 		
-		let bsTooltip = bootstrap.Tooltip.getInstance(directionButton);
-		bsTooltip.setContent({ '.tooltip-inner': (filterChoices.get("direction") == "desc") ? "Descending" : "Ascending"});
+		let tooltip = bootstrap.Tooltip.getInstance(directionButton);
+		tooltip.setContent({ '.tooltip-inner': (filterChoices.get("direction") == "desc") ? "Descending" : "Ascending"});
 	});
 
 	updateForm.addEventListener("click", function(event) {
@@ -104,30 +106,21 @@
 		const url = form.action;
 
 		const formData = new FormData(form);
-		formData.append("nsfw", filterChoices.get("nsfw"))
-		formData.append("sort", filterChoices.get("sort"))
-		formData.append("direction", filterChoices.get("direction"))
+		formData.append("nsfw", filterChoices.get("nsfw"));
+		formData.append("sort", filterChoices.get("sort"));
+		formData.append("direction", filterChoices.get("direction"));
 		
 		fetch(url, {
 			method: "POST",
 			body: formData
 		})
-		.then(response => {
+		.then(function(response) {
 			if (!response.ok) {
-				// If UpdateView returns a 400 error (validation failed), handle it here
-				return response.json().then(errors => { throw errors; });
+				alert("Something went wrong");
+			} else {
+				alert("Updated (replace with toast or somethin)")
 			}
-			return response.json();
-		})
-		.then(data => {
-			console.log('Success:', data.message); // "Profile updated!"
-			alert('Saved successfully!');
-		})
-		.catch(errors => {
-			console.error('Validation Errors:', errors);
-			alert('Failed to save. Check console for details.');
 		});
-		
 	});
 </script>
 {% endblock %}
