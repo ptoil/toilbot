@@ -30,6 +30,6 @@
 	color: #ffffff;
 }
 
-.dropdown-item {
+.dropdown-item, .page-link {
     cursor: pointer;
 }

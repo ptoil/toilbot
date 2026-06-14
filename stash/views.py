@@ -11,7 +11,7 @@ from stash.models import File, Profile
 
 class FileListView(ListView):
 	model = File
-#	paginate_by = 2
+	paginate_by = 1
 	
 	def get_template_names(self):
 		template_names = super().get_template_names()
@@ -23,15 +23,17 @@ class FileListView(ListView):
 	def get_queryset(self):
 		qs = super(FileListView, self).get_queryset()
 
-		#check URL request, then user settings if logged in, then default
-		if self.request.user.is_authenticated:
+		#check URL request, then user settings if logged in, or default if logged out
+		if self.request.user.is_authenticated and self.request.user.socialaccount_set.exists():
 			nsfw = self.request.GET.get("nsfw", default=self.request.user.profile.nsfw)
 			sort = self.request.GET.get("sort", default=self.request.user.profile.sort)
 			direction = self.request.GET.get("direction", default=self.request.user.profile.direction)
+			page = self.request.GET.get("page", default=1)
 		else:
 			nsfw = self.request.GET.get("nsfw", default="sfw")
 			sort = self.request.GET.get("sort", default="modified")
 			direction = self.request.GET.get("direction", default="desc")
+			page = self.request.GET.get("page", default=1)
 
 		if nsfw == "nsfw":  qs = qs.filter(nsfw=True)
 		elif nsfw == "sfw": qs = qs.filter(nsfw=False)
@@ -45,20 +47,23 @@ class FileListView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super().get_context_data(**kwargs)
 
-		#check URL request, then user settings if logged in, then default
-		if self.request.user.is_authenticated:
+		#check URL request, then user settings if logged in, or default if logged out
+		if self.request.user.is_authenticated and self.request.user.socialaccount_set.exists():
 			nsfw = self.request.GET.get("nsfw", default=self.request.user.profile.nsfw)
 			sort = self.request.GET.get("sort", default=self.request.user.profile.sort)
 			direction = self.request.GET.get("direction", default=self.request.user.profile.direction)
+			page = self.request.GET.get("page", default=1)
 		else:
 			nsfw = self.request.GET.get("nsfw", default="sfw")
 			sort = self.request.GET.get("sort", default="modified")
 			direction = self.request.GET.get("direction", default="desc")
+			page = self.request.GET.get("page", default=1)
 
 		filters = {
 			"sort" : sort,
 			"direction" : direction,
-			"nsfw" : nsfw
+			"nsfw" : nsfw,
+			"page" : page
 		}
 		context["filters"] = filters
 		return context

@@ -8,15 +8,15 @@
 {% block content %}
 	<div id="content-target">
 	{% partialdef content-partial inline %}
-		<div class="btn-toolbar mb-3">
+		<div class="btn-toolbar mb-3 justify-content-center">
 			{% load url_utils %}
 			<div class="btn-group me-3">
 				<button class="btn btn-secondary {% if filters.nsfw == "sfw" %}active{% endif %}"
-				        hx-get="{% get_filter_url nsfw="sfw" %}" hx-target="#content-target">SFW</button>
+						hx-get="{% get_filter_url nsfw="sfw" %}" hx-target="#content-target" hx-push-url="true">SFW</button>
 				<button class="btn btn-danger {% if filters.nsfw == "both" %}active{% endif %}"
-				        hx-get="{% get_filter_url nsfw="both" %}" hx-target="#content-target">Both</button>
+						hx-get="{% get_filter_url nsfw="both" %}" hx-target="#content-target" hx-push-url="true">Both</button>
 				<button class="btn btn-danger {% if filters.nsfw == "nsfw" %}active{% endif %}"
-				        hx-get="{% get_filter_url nsfw="nsfw" %}" hx-target="#content-target">NSFW</button>
+						hx-get="{% get_filter_url nsfw="nsfw" %}" hx-target="#content-target" hx-push-url="true">NSFW</button>
 			</div>
 
 			<div class="input-group me-3">
@@ -25,17 +25,55 @@
 				</button>
 				<ul class="dropdown-menu">
 					<li><a class="dropdown-item {% if filters.sort == "created" %}active{% endif %}"
-						     hx-get="{% get_filter_url sort="created" %}" hx-target="#content-target">Created</a></li>
+							 hx-get="{% get_filter_url sort="created" %}" hx-target="#content-target" hx-push-url="true">Created</a></li>
 					<li><a class="dropdown-item {% if filters.sort == "modified" %}active{% endif %}"
-						     hx-get="{% get_filter_url sort="modified" %}" hx-target="#content-target">Modified</a></li>
+							 hx-get="{% get_filter_url sort="modified" %}" hx-target="#content-target" hx-push-url="true">Modified</a></li>
 				</ul>
 				<button class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top"
-				        data-bs-title="{% if filters.direction == "desc" %}Descending{% else %}Ascending{% endif %}"
-				        hx-get="{% get_filter_url "dir" %}" hx-target="#content-target">
+						data-bs-title="{% if filters.direction == "desc" %}Descending{% else %}Ascending{% endif %}"
+						hx-get="{% get_filter_url "dir" %}" hx-target="#content-target" hx-push-url="true">
 					<i class="fas fa-caret-{% if filters.direction == "desc" %}down{% else %}up{% endif %}"></i>
 				</button>
 			</div>
 		</div>
+
+		<nav class="mb-3">
+			<ul class="pagination mb-0 justify-content-center">
+				<li class="page-item {% if page_obj.number == 1 %}disabled{% endif %}">
+					<a class="page-link" hx-get="{% get_filter_url page=1 %}" hx-target="#content-target" hx-push-url="true">
+						<i class="fas fa-angles-left"></i>
+					</a>
+				</li>
+
+				{% if page_obj.has_previous %}
+				<li class="page-item">
+					<a class="page-link" hx-get="{% get_filter_url page=page_obj.previous_page_number %}"
+					   hx-target="#content-target" hx-push-url="true">{{ page_obj.previous_page_number }}</a>
+				</li>
+				{% endif %}
+
+				<li class="page-item active">
+					<a class="page-link">{{ page_obj.number }}</a>
+				</li>
+
+				{% if page_obj.has_next %}
+				<li class="page-item">
+					<a class="page-link" hx-get="{% get_filter_url page=page_obj.next_page_number %}"
+					   hx-target="#content-target" hx-push-url="true">{{ page_obj.next_page_number }}</a>
+				</li>
+				{% endif %}
+
+				<li class="page-item {% if page_obj.number == page_obj.paginator.num_pages %}disabled{% endif %}">
+					<a class="page-link" hx-get="{% get_filter_url page=page_obj.paginator.num_pages %}"
+					   hx-target="#content-target" hx-push-url="true">
+						<i class="fas fa-angles-right"></i>
+					</a>
+				</li>
+			</ul>
+			<div class="text-center">
+				<span>{{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }}</span>
+			</div>
+		</nav>
 
 		{% for file in object_list %}
 			<div class="card mb-2 {% if file.nsfw %}border-danger{% else %}border-secondary{% endif %} overflow-hidden">
@@ -77,9 +115,9 @@
 					</div>
 				</div>
 			</div>
-	{% empty %}
-		<p>No files yet.</p>
-	{% endfor %}
+		{% empty %}
+			<p>No files yet.</p>
+		{% endfor %}
 	{% endpartialdef %}
 	</div>
 
