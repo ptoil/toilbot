@@ -5,9 +5,13 @@ from django.conf import settings
 
 from django.dispatch import receiver
 from allauth.socialaccount.signals import social_account_added, social_account_updated
+from modelsearch import index
+from modelsearch.queryset import SearchableQuerySetMixin
 
-# Create your models here.
-class File(models.Model):
+class FileQuerySet(SearchableQuerySetMixin, models.QuerySet):
+	pass
+
+class File(index.Indexed, models.Model):
 	
 	#User editable
 	file = models.FileField() #move to temp folder if model is deleted (acts as recycle bin, isnt fully deleted until admin confirms)
@@ -26,6 +30,13 @@ class File(models.Model):
 #	file_size_bytes = models.PositiveIntegerField()
 #	file_video_length = models.DurationField()
 
+	objects = FileQuerySet.as_manager()
+	search_fields = [
+		index.AutocompleteField("file"),
+		index.AutocompleteField("description"),
+
+		index.FilterField("nsfw")
+	]
 
 	def file_type(self):
 		extension = os.path.splitext(self.file.name)[1].lower()

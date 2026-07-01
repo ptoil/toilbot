@@ -7,6 +7,9 @@ register = template.Library()
 def get_filter_url(context, *args, **kwargs):
 	filters = context["filters"].copy()
 
+	if "search" in args:
+		filters.pop("q") #handled automatically by htmx
+
 	if "dir" in args:
 		filters["direction"] = "asc" if filters["direction"] == "desc" else "desc"
 	for key, value in kwargs.items():

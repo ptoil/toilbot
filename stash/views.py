@@ -12,7 +12,7 @@ from stash.models import File, Profile
 
 class FileListView(ListView):
 	model = File
-	paginate_by = 1
+	paginate_by = 3
 	
 	def get_template_names(self):
 		template_names = super().get_template_names()
@@ -29,12 +29,13 @@ class FileListView(ListView):
 			nsfw = self.request.GET.get("nsfw", default=self.request.user.profile.nsfw)
 			sort = self.request.GET.get("sort", default=self.request.user.profile.sort)
 			direction = self.request.GET.get("direction", default=self.request.user.profile.direction)
-			page = self.request.GET.get("page", default=1)
 		else:
 			nsfw = self.request.GET.get("nsfw", default="sfw")
 			sort = self.request.GET.get("sort", default="modified")
 			direction = self.request.GET.get("direction", default="desc")
-			page = self.request.GET.get("page", default=1)
+		page = self.request.GET.get("page", default=1)
+		query = self.request.GET.get("q", default="")
+
 
 		if nsfw == "nsfw":  qs = qs.filter(nsfw=True)
 		elif nsfw == "sfw": qs = qs.filter(nsfw=False)
@@ -43,6 +44,8 @@ class FileListView(ListView):
 		prefix = '-' if direction == "desc" else ''
 
 		qs = qs.order_by(f"{prefix}{sort}")
+		if query:
+			qs = qs.autocomplete(query)
 		return qs
 
 	#Overriding to handle page oob error from switching filters. changing behavior to load last page
@@ -81,18 +84,19 @@ class FileListView(ListView):
 			nsfw = self.request.GET.get("nsfw", default=self.request.user.profile.nsfw)
 			sort = self.request.GET.get("sort", default=self.request.user.profile.sort)
 			direction = self.request.GET.get("direction", default=self.request.user.profile.direction)
-			page = self.request.GET.get("page", default=1)
 		else:
 			nsfw = self.request.GET.get("nsfw", default="sfw")
 			sort = self.request.GET.get("sort", default="modified")
 			direction = self.request.GET.get("direction", default="desc")
-			page = self.request.GET.get("page", default=1)
+		page = self.request.GET.get("page", default=1)
+		query = self.request.GET.get("q", default="")
 
 		filters = {
 			"sort" : sort,
 			"direction" : direction,
 			"nsfw" : nsfw,
-			"page" : page
+			"page" : page,
+			"q" : query,
 		}
 		context["filters"] = filters
 		return context

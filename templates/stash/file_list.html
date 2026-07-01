@@ -10,28 +10,42 @@
 	{% partialdef content-partial inline %}
 		<div class="btn-toolbar mb-3 justify-content-center">
 			{% load url_utils %}
-			<div class="btn-group me-3">
-				<button class="btn btn-secondary {% if filters.nsfw == "sfw" %}active{% endif %}"
-						hx-get="{% get_filter_url nsfw="sfw" %}" hx-target="#content-target" hx-push-url="true">SFW</button>
-				<button class="btn btn-danger {% if filters.nsfw == "both" %}active{% endif %}"
-						hx-get="{% get_filter_url nsfw="both" %}" hx-target="#content-target" hx-push-url="true">Both</button>
-				<button class="btn btn-danger {% if filters.nsfw == "nsfw" %}active{% endif %}"
-						hx-get="{% get_filter_url nsfw="nsfw" %}" hx-target="#content-target" hx-push-url="true">NSFW</button>
+
+			<form id="search-form" class="input-group me-2" hx-get="{% get_filter_url "search" %}" hx-target="#content-target" hx-push-url="true">
+				<input id="search-bar" class="form-control" type="text" placeholder="Search" name="q" hx-preserve="true" autofocus>
+			</form>
+
+			<div class="dropdown me-2">
+				<button class="btn {% if filters.nsfw == "sfw" %}btn-secondary{% else %}btn-danger{% endif %}" data-bs-toggle="dropdown" aria-expanded="false">
+					{% if filters.nsfw == 'both' %}
+						{{ filters.nsfw|title }}
+					{% else %}
+						{{ filters.nsfw|upper }}
+					{% endif %}
+				</button>
+				<ul class="dropdown-menu">
+					<li><a class="dropdown-item {% if filters.nsfw == "sfw" %}active{% endif %}"
+								 hx-get="{% get_filter_url nsfw="sfw" %}" hx-target="#content-target" hx-push-url="true">SFW</a></li>
+					<li><a class="dropdown-item {% if filters.nsfw == "both" %}active{% endif %}"
+								 hx-get="{% get_filter_url nsfw="both" %}" hx-target="#content-target" hx-push-url="true">Both</a></li>
+					<li><a class="dropdown-item {% if filters.nsfw == "nsfw" %}active{% endif %}"
+								 hx-get="{% get_filter_url nsfw="nsfw" %}" hx-target="#content-target" hx-push-url="true">NSFW</a></li>
+				</ul>
 			</div>
 
-			<div class="input-group me-3">
+			<div class="input-group me-2">
 				<button class="btn btn-secondary" data-bs-toggle="dropdown" aria-expanded="false">
 					{{ filters.sort|title }}
 				</button>
 				<ul class="dropdown-menu">
 					<li><a class="dropdown-item {% if filters.sort == "created" %}active{% endif %}"
-							 hx-get="{% get_filter_url sort="created" %}" hx-target="#content-target" hx-push-url="true">Created</a></li>
+								 hx-get="{% get_filter_url sort="created" %}" hx-target="#content-target" hx-push-url="true">Created</a></li>
 					<li><a class="dropdown-item {% if filters.sort == "modified" %}active{% endif %}"
-							 hx-get="{% get_filter_url sort="modified" %}" hx-target="#content-target" hx-push-url="true">Modified</a></li>
+								 hx-get="{% get_filter_url sort="modified" %}" hx-target="#content-target" hx-push-url="true">Modified</a></li>
 				</ul>
 				<button class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top"
-						data-bs-title="{% if filters.direction == "desc" %}Descending{% else %}Ascending{% endif %}"
-						hx-get="{% get_filter_url "dir" %}" hx-target="#content-target" hx-push-url="true">
+								data-bs-title="{% if filters.direction == "desc" %}Descending{% else %}Ascending{% endif %}"
+								hx-get="{% get_filter_url "dir" %}" hx-target="#content-target" hx-push-url="true">
 					<i class="fas fa-caret-{% if filters.direction == "desc" %}down{% else %}up{% endif %}"></i>
 				</button>
 			</div>
@@ -126,19 +140,39 @@
 			tooltipTriggerList = document.querySelectorAll("[data-bs-toggle='tooltip']");
 			[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 		}
-
-		enableTooltips() //Enable tooltips on page load
+		enableTooltips(); //Enable tooltips on page load
 
 		document.body.addEventListener("htmx:afterSwap", () => {
 			const oldTooltips = document.querySelectorAll(".tooltip");
 			oldTooltips.forEach(t => t.remove());
 
-			enableTooltips()
+			enableTooltips();
+		});
+
+		const searchForm = document.getElementById("search-form");
+		const searchBar = document.getElementById("search-bar");
+		let typingTimer;
+
+		function triggerInstantSearch() {
+			htmx.trigger(searchForm, "submit");
+		}
+
+		searchBar.addEventListener("input", () => {
+			clearTimeout(typingTimer);
+			typingTimer = setTimeout(() => {
+				triggerInstantSearch();
+			}, 500);
+		});
+
+		searchForm.addEventListener("submit", (event) => {
+			event.preventDefault();
+			clearTimeout(typingTimer);
+			triggerInstantSearch();
 		});
 
 		function copyLink(link) {
 			navigator.clipboard.writeText(link);
-			alert("Copied: " + link)
+			alert("Copied: " + link);
 		}
 	</script>
 {% endblock %}
