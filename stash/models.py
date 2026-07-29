@@ -8,6 +8,15 @@ from allauth.socialaccount.signals import social_account_added, social_account_u
 from modelsearch import index
 from modelsearch.queryset import SearchableQuerySetMixin
 
+class Collection(models.Model):
+
+	name = models.CharField()
+	nsfw = models.BooleanField(default=False, verbose_name="NSFW")
+
+	def __str__(self):
+		return self.name
+
+
 class FileQuerySet(SearchableQuerySetMixin, models.QuerySet):
 	pass
 
@@ -20,6 +29,7 @@ class File(index.Indexed, models.Model):
 #	author = models.CharField(blank=True)
 	nsfw = models.BooleanField(default=False, verbose_name="NSFW")
 #	related = models.JSONField()
+	collections = models.ManyToManyField(Collection, blank=True)
 
 	#Automatic
 	created = models.DateTimeField(auto_now_add=True)

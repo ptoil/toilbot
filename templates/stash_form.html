@@ -2,7 +2,6 @@
 
 {% block title %}Stash{% endblock %}
 
-{% block stash_active %}{% endblock %}
 {% block upload_active %}active{% endblock %}
 
 {% block content %}
@@ -11,16 +10,50 @@
 		
 		<h2 class="mb-3">{% block header %}{% endblock %}</h2>
 
-		{% for field in form %}
-			<div class="row mb-3 align-items-center">
-				<div class="col-sm-3 text-sm-end pe-4 mb-1">
-					<label for="{{ field.id_for_label }}" class="fw-bold">{{ field.label }}</label>
-				</div>
-				<div class="col-sm-9 ps-4">
-					{{ field }}
-				</div>
+		<div class="row mb-3 align-items-center">
+			<div class="col-sm-3 text-sm-end pe-4 mb-1">
+				<label for="id_file" class="fw-bold">File</label>
 			</div>
-		{% endfor %}
+			<div class="col-sm-9 ps-4">
+				{{ form.file }}
+			</div>
+		</div>
+
+		<div class="row mb-3 align-items-center">
+			<div class="col-sm-3 text-sm-end pe-4 mb-1">
+				<label for="id_description" class="fw-bold">Description</label>
+			</div>
+			<div class="col-sm-9 ps-4">
+				{{ form.description }}
+			</div>
+		</div>
+
+		<div class="row mb-3 align-items-center">
+			<div class="col-sm-3 text-sm-end pe-4 mb-1">
+				<label for="id_source" class="fw-bold">Source</label>
+			</div>
+			<div class="col-sm-9 ps-4">
+				{{ form.source }}
+			</div>
+		</div>
+
+		<div class="row mb-3 align-items-center">
+			<div class="col-sm-3 text-sm-end pe-4 mb-1">
+				<label for="id_nsfw" class="fw-bold">NSFW</label>
+			</div>
+			<div class="col-sm-9 ps-4">
+				{{ form.nsfw }}
+			</div>
+		</div>
+
+		<div class="row mb-3 align-items-center">
+			<div class="col-sm-3 text-sm-end pe-4 mb-1">
+				<label for="id_collections" class="fw-bold">Collections</label>
+			</div>
+			<div class="col-sm-9 ps-4">
+				{{ form.collections }}
+			</div>
+		</div>
 
 		<div class="row mt-4">
 			<div class="col-sm-3"></div>

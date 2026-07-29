@@ -7,8 +7,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, Http404
 from django.core.paginator import InvalidPage
 
-from stash.models import File, Profile
-
+from .models import File, Profile, Collection
+from .forms import FileForm
 
 class FileListView(ListView):
 	model = File
@@ -107,7 +107,7 @@ class FileDetailView(DetailView):
 
 class FileUploadView(LoginRequiredMixin, CreateView):
 	model = File
-	fields = ["file", "description", "source", "nsfw"]
+	form_class = FileForm
 	redirect_field_name = None
 	template_name_suffix = "_upload_form"
 
@@ -117,9 +117,14 @@ class FileUploadView(LoginRequiredMixin, CreateView):
 
 class FileUpdateView(LoginRequiredMixin, UpdateView):
 	model = File
-	fields = ["file", "description", "source", "nsfw"]
+	form_class = FileForm
 	redirect_field_name = None
 	template_name_suffix = "_update_form"
+
+
+class CollectionsView(ListView):
+	model = Collection
+#	paginate_by = 2
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):

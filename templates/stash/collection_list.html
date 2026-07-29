@@ -1,0 +1,21 @@
+{% extends "stash_base.html" %}
+
+{% block title %}Collections{% endblock %}
+
+{% block collections_active %}active{% endblock %}
+
+{% block content %}
+	<ul>
+		{% for col in object_list %}
+			<li>
+				<ul>
+					{% for file in col.file_set.all %}
+						<li>{{ file }}</li>
+					{% endfor %}
+				</ul>
+			</li>
+		{% empty %}
+			<li>No collections yet.</li>
+		{% endfor %}
+	</ul>
+{% endblock %}

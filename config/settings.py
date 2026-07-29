@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.discord",
     "easy_thumbnails",
     "modelsearch",
+    "easy_select2",
 ]
 
 MIDDLEWARE = [
